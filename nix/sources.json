@@ -1,0 +1,46 @@
+{
+    "iohk-nix": {
+        "branch": "master",
+        "description": "nix scripts shared across projects",
+        "owner": "input-output-hk",
+        "repo": "iohk-nix",
+        "rev": "ce9d8f42b705748b42b8e7f41d04e256de5420ea",
+        "sha256": "17vikcml2wadx7wz533n6j3fnxfp7nar8qypdqva20vkpid3h4yx",
+        "url": "https://github.com/input-output-hk/iohk-nix/archive/ce9d8f42b705748b42b8e7f41d04e256de5420ea.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "jormungandr-nix": {
+        "branch": "master",
+        "description": "jormungandr nix scripts",
+        "homepage": null,
+        "owner": "input-output-hk",
+        "repo": "jormungandr-nix",
+        "rev": "4cf390ce36a2fb7086068c42911f7d09ba804347",
+        "sha256": "1kblnbr7hv3ygpdjid104jg4762658ivddvn64qzmk4z72hnbv4l",
+        "type": "tarball",
+        "url": "https://github.com/input-output-hk/jormungandr-nix/archive/4cf390ce36a2fb7086068c42911f7d09ba804347.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "niv": {
+        "branch": "master",
+        "description": "Easy dependency management for Nix projects",
+        "homepage": "https://github.com/nmattia/niv",
+        "owner": "nmattia",
+        "repo": "niv",
+        "rev": "1dd094156b249586b66c16200ecfd365c7428dc0",
+        "sha256": "1b2vjnn8iac5iiqszjc2v1s1ygh0yri998c0k3s4x4kn0dsqik21",
+        "url": "https://github.com/nmattia/niv/archive/1dd094156b249586b66c16200ecfd365c7428dc0.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "nixpkgs": {
+        "branch": "nixos-18.09",
+        "description": "A read-only mirror of NixOS/nixpkgs tracking the released channels. Send issues and PRs to",
+        "homepage": "https://github.com/NixOS/nixpkgs",
+        "owner": "NixOS",
+        "repo": "nixpkgs-channels",
+        "rev": "a7e559a5504572008567383c3dc8e142fa7a8633",
+        "sha256": "16j95q58kkc69lfgpjkj76gw5sx8rcxwi3civm0mlfaxxyw9gzp6",
+        "url": "https://github.com/NixOS/nixpkgs-channels/archive/a7e559a5504572008567383c3dc8e142fa7a8633.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    }
+}
