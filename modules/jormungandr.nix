@@ -8,10 +8,10 @@ let
 
   compact = l: filter (e: e != null) l;
   peerAddress = nodeName: node:
-    if nodeName == name then
-      null
+    if nodeName != name && (node.config.services.jormungandr.enable or false) then
+      "/ip4/${node.config.networking.privateIPv4}/tcp/3000"
     else
-      "/ip4/${node.config.networking.privateIPv4}/tcp/3000";
+      null;
   trustedPeersAddresses = compact (attrValues (mapAttrs peerAddress nodes));
 in {
   imports = [

@@ -2,7 +2,7 @@
 let
   inherit (lib) mkDefault;
   inherit (config.deployment.ec2) region;
-  inherit (import ../../globals.nix) regions accessKeyId domain;
+  inherit (import ../../globals.nix) accessKeyId domain;
 in {
   deployment.targetEnv = "ec2";
 

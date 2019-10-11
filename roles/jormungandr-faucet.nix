@@ -7,7 +7,7 @@ in {
   ];
 
   deployment.keys."faucet.sk" = {
-    keyFile = ../. + "/static/secrets/stake_1_key.sk";
+    keyFile = ../static/secrets/stake_1_key.sk;
   };
 
   deployment.ec2.securityGroups = [

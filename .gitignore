@@ -1,3 +1,4 @@
 .envrc
 globals.nix
 static/
+secrets/

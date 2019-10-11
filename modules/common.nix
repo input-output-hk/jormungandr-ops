@@ -1,4 +1,12 @@
-{ pkgs, lib, name, config, ... }: {
+{ pkgs, lib, name, config, ... }:
+let
+  sshKeys = import ((import ../nix/sources.nix).iohk-ops + "/lib/ssh-keys.nix") {
+    inherit lib;
+  };
+  inherit (sshKeys) allKeysFrom devOps;
+  devOpsKeys = allKeysFrom devOps;
+in {
+
   imports = [ ./aws.nix ../modules/monitoring-exporters.nix ];
 
   networking.hostName = name;
@@ -29,6 +37,7 @@
   };
 
   users.mutableUsers = false;
+  users.users.root.openssh.authorizedKeys.keys = devOpsKeys;
 
   services = {
     monitoring-exporters.graylogHost = "monitor:5044";

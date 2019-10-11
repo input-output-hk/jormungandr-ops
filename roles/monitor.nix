@@ -38,9 +38,9 @@ in {
     webhost = config.node.fqdn;
     enableACME = config.deployment.targetEnv == "ec2";
 
-    grafanaCreds = import ../static/grafana-creds.nix;
-    graylogCreds = import ../static/graylog-creds.nix;
-    oauth = import ../static/oauth.nix;
+    grafanaCreds = import ../secrets/grafana-creds.nix;
+    graylogCreds = import ../secrets/graylog-creds.nix;
+    oauth = import ../secrets/oauth.nix;
 
     monitoredNodes = monitoredNodes.${config.deployment.targetEnv};
   };
