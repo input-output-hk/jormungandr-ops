@@ -1,32 +1,46 @@
-{ tiny, xlarge }:
+{ tiny, large }:
 let
   inherit (import ../nix { }) lib;
-  inherit (lib) range listToAttrs;
+  inherit (lib) range listToAttrs mapAttrsToList nameValuePair foldl forEach;
 
-  mkBox = size: role: _: { imports = [ size role ]; };
-  mkTiny = role: mkBox tiny role;
-  mkXlarge = role: mkBox xlarge role;
+  mkNode = { size ? tiny, role, ... }: {
+    imports = [ size role ../modules/common.nix ];
+  };
 
-  jormungandr-stake-pools = listToAttrs (map (n: {
-    name = "stake-${toString n}";
-    value = _: {
-      imports = [ tiny ../roles/jormungandr-stake.nix ../modules/common.nix ];
-      deployment.keys."secret_pool.yaml" = {
-        keyFile = ../. + "/static/secrets/secret_pool_${toString n}.yaml";
-        user = "jormungandr";
-      };
+  mapNestedNodes = name:
+    { amount ? null, ... }@args:
+    (if amount != null then
+      forEach (range 1 amount)
+      (n: nameValuePair "${name}-${toString n}" (mkNode args))
+    else
+      nameValuePair name (mkNode args));
+
+  mkNodes = defs:
+    listToAttrs
+    (foldl (sum: elem: sum ++ (if elem ? name then [ elem ] else elem)) [ ]
+      (mapAttrsToList mapNestedNodes defs));
+
+  nodes = mkNodes {
+    monitor = {
+      size = large;
+      role = ../roles/monitor.nix;
     };
-  }) (range 1 1));
-
-  jormungandr-relays = listToAttrs (map (n: {
-    name = "relay-${toString n}";
-    value = mkTiny ../roles/jormungandr-relay.nix;
-  }) (range 1 1));
-
+    explorer = {
+      role = ../roles/jormungandr-explorer.nix;
+    };
+    faucet = {
+      role = ../roles/jormungandr-faucet.nix;
+    };
+    stake = {
+      amount = 1;
+      role = ../roles/jormungandr-stake.nix;
+    };
+    relay = {
+      amount = 1;
+      role = ../roles/jormungandr-relay.nix;
+    };
+  };
 in {
   network.description = "jormungandr-performance";
-
-  monitor = mkXlarge ../roles/monitor.nix;
-  explorer = mkTiny ../roles/jormungandr-explorer.nix;
-  faucet = mkTiny ../roles/jormungandr-faucet.nix;
-} // jormungandr-stake-pools // jormungandr-relays
+  network.enableRollback = true;
+} // nodes

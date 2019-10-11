@@ -1,49 +1,31 @@
+{globals, ...}:
 let
-  region = "eu-central-1";
-  accessKeyId = let value = __getEnv "AWS_ACCESS_KEY_ID";
-  in if value == "" then
-    (abort "AWS_ACCESS_KEY_ID environment variable is not set")
-  else
-    value;
+  inherit (globals) regions accessKeyId;
 
   cluster = import ../clusters/jormungandr-performance.nix {
-    xlarge = ../physical/aws/t3.xlarge.nix;
     tiny = ../physical/aws/t2.nano.nix;
+    large = ../physical/aws/t3.xlarge.nix;
   };
 
+  region = __head regions;
+
   settings = {
-    resources = {
-      region = "eu-central-1";
+    require = [
+      ../physical/aws/security-groups/allow-all.nix
+      ../physical/aws/security-groups/allow-ssh.nix
+      # ../physical/aws/security-groups/allow-deployer-ssh.nix
+      ../physical/aws/security-groups/allow-monitoring-collection.nix
+      ../physical/aws/security-groups/allow-public-www-https.nix
+      ../physical/aws/security-groups/allow-jormungandr.nix
+    ];
 
-      ec2KeyPairs = {
-        "jormungandr-${region}" = { inherit region accessKeyId; };
-      };
+    resources.elasticIPs = __listToAttrs (map (name: {
+      name = "${name}-ip";
+      value = { inherit region accessKeyId; };
+    }) (__attrNames cluster));
 
-      ec2SecurityGroups = {
-        "allow-all-ssh-${region}" = _: {
-          _file = ./jormungandr-performance-aws.nix;
-          inherit region accessKeyId;
-          description = "SSH";
-          rules = [{
-            protocol = "tcp";
-            fromPort = 22;
-            toPort = 22;
-            sourceIp = "0.0.0.0/0";
-          }];
-        };
-
-        "allow-deployer-ssh-${region}" = _: {
-          inherit region accessKeyId;
-          _file = ./jormungandr-performance-aws.nix;
-          description = "SSH";
-          rules = [{
-            protocol = "tcp";
-            fromPort = 22;
-            toPort = 22;
-            sourceIp = "0.0.0.0/0"; # FIXME: IP of deployer
-          }];
-        };
-      };
-    };
+    resources.ec2KeyPairs = __listToAttrs (map (region:
+      { name = "jormungandr-${region}"; value = { inherit region accessKeyId; }; }
+    ) regions);
   };
 in cluster // settings

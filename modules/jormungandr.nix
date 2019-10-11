@@ -1,4 +1,4 @@
-{ config, name, nodes, ... }:
+{ config, name, nodes, resources, ... }:
 let
   sources = import ../nix/sources.nix;
 
@@ -19,8 +19,14 @@ in {
     # (sources.jormungandr-nix + "/nixos/jormungandr-explorer.nix")
     # (sources.jormungandr-nix + "/nixos/jormungandr-monitor.nix")
     ./monitoring-exporters.nix
+    ./common.nix
   ];
   disabledModules = [ "services/networking/jormungandr.nix" ];
+
+  deployment.ec2.securityGroups = [
+    resources.ec2SecurityGroups."allow-jormungandr-${config.node.region}"
+    resources.ec2SecurityGroups."allow-monitoring-collection-${config.node.region}"
+  ];
 
   services.jormungandr = {
     enable = true;
@@ -42,6 +48,4 @@ in {
 
   services.jormungandr-monitor.enable = true;
   services.nginx.enableReload = true;
-
-  services.monitoring-exporters = { graylogHost = "monitoring:5044"; };
 }

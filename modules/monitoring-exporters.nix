@@ -127,8 +127,6 @@ in {
       networking.firewall.allowedTCPPorts = [ 9100 9102 ];
     })
 
-    # Leaving the "monitoring" attribute name as static rather than
-    # referencing monitoringNV due to atala globals.nix usage conflict.
     (mkIf cfg.logging {
       services.journalbeat = {
         enable = true;

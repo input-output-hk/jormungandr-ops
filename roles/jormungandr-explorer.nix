@@ -1,13 +1,19 @@
-{ lib, ... }: {
+{ lib, config, resources, ... }:
+let
+  inherit (config.node) fqdn;
+in {
   imports = [ ./jormungandr-relay.nix ];
+
+  deployment.ec2.securityGroups = [
+    resources.ec2SecurityGroups."allow-public-www-https-${config.node.region}"
+  ];
 
   services.jormungandr-explorer = {
     enable = true;
-    virtualHost = "explorer";
+    virtualHost = "${fqdn}";
     enableSSL = false;
-    jormungandrApi = "http://explorer/explorer/graphql";
+    jormungandrApi = "http://${fqdn}/explorer/graphql";
   };
 
-  services.jormungandr.rest.cors.allowedOrigins = [ "http://explorer" ];
-  services.nginx.mapHashBucketSize = 64;
+  services.jormungandr.rest.cors.allowedOrigins = [ "http://${fqdn}" ];
 }

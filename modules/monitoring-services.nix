@@ -427,6 +427,7 @@ in {
         };
       };
     }
+
     (lib.mkIf cfg.enableACME {
       networking.firewall.allowedTCPPorts = [ 443 ];
       services.nginx.virtualHosts."${cfg.webhost}" = {
@@ -446,6 +447,7 @@ in {
           "127.0.0.1, ::1"; # only trust nginx to claim usernames
       };
     })
+
     (lib.mkIf cfg.metrics {
       services = {
         nginx = {

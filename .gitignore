@@ -1,2 +1,3 @@
+.envrc
+globals.nix
 static/
-localstate.nixops
