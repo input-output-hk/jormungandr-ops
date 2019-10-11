@@ -2,6 +2,10 @@
 
 set -euxo pipefail
 
+# Credential setup
+
+nix-shell ./scripts/gen-graylog-creds.nix
+
 # NixOps setup
 
 export NIXOPS_DEPLOYMENT=jormungandr-performance-aws

@@ -25,16 +25,20 @@ let
       size = large;
       role = ../roles/monitor.nix;
     };
+
     explorer = {
       role = ../roles/jormungandr-explorer.nix;
     };
+
     faucet = {
       role = ../roles/jormungandr-faucet.nix;
     };
+
     stake = {
       amount = 1;
       role = ../roles/jormungandr-stake.nix;
     };
+
     relay = {
       amount = 1;
       role = ../roles/jormungandr-relay.nix;
