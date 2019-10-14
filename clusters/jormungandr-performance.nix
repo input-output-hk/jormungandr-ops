@@ -33,7 +33,7 @@ let
 
     relay-ams1 = {
       imports = [ tiny ../roles/jormungandr-relay.nix ];
-      amount = 1;
+      amount = 2;
       deployment.ec2.region = "eu-central-1";
       deployment.packet.facility = "ams1";
     };

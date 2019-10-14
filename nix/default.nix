@@ -6,6 +6,8 @@ with {
     inherit ((import sources.iohk-nix { }).rust-packages.pkgs)
       jormungandr jormungandr-cli;
 
+    inherit ((import sources.jormungandr-nix {}).scripts) janalyze;
+
     nixops = (import (sources.nixops-core + "/release.nix") {
       nixpkgs = super.path;
       p = (p:

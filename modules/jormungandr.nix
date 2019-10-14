@@ -17,8 +17,6 @@ let
 in {
   imports = [
     (sources.jormungandr-nix + "/nixos")
-    # (sources.jormungandr-nix + "/nixos/jormungandr-explorer.nix")
-    # (sources.jormungandr-nix + "/nixos/jormungandr-monitor.nix")
     ./monitoring-exporters.nix
     ./common.nix
   ];
@@ -46,6 +44,11 @@ in {
 
   environment.variables.JORMUNGANDR_RESTAPI_URL =
     "http://${config.services.jormungandr.rest.listenAddress}/api";
+
+  environment.systemPackages = with pkgs; [
+    jormungandr-cli
+    janalyze
+  ];
 
   services.jormungandr-monitor.enable = true;
   services.nginx.enableReload = true;
