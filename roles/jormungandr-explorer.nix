@@ -1,6 +1,5 @@
 { lib, config, resources, ... }:
-let
-  inherit (config.node) fqdn;
+let inherit (config.node) fqdn;
 in {
   imports = [ ./jormungandr-relay.nix ];
 

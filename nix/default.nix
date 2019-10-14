@@ -1,10 +1,20 @@
 { sources ? import ./sources.nix, system ? __currentSystem }:
 with {
-  overlay = _: pkgs: {
+  overlay = self: super: {
     inherit (import sources.niv { }) niv;
-    packages = pkgs.callPackages ./packages.nix { };
+    packages = self.callPackages ./packages.nix { };
     inherit ((import sources.iohk-nix { }).rust-packages.pkgs)
       jormungandr jormungandr-cli;
+
+    nixops = (import (sources.nixops-core + "/release.nix") {
+      nixpkgs = super.path;
+      p = (p:
+        let
+          pluginSources = with sources; [ nixops-packet nixops-libvirtd ];
+          plugins = map (source: p.callPackage (source + "/release.nix") { })
+            pluginSources;
+        in [ p.aws ] ++ plugins);
+    }).build.${system};
   };
 };
 import sources.nixpkgs {

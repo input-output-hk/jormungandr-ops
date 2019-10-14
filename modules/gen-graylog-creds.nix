@@ -1,7 +1,6 @@
 { user ? null, password ? null }:
 
-let
-  pkgs = import (import ../fetch-nixpkgs.nix) {};
+let pkgs = import (import ../fetch-nixpkgs.nix) { };
 in pkgs.stdenv.mkDerivation {
   name = "gen-graylog-creds";
   buildInputs = with pkgs; [ pwgen gnused ];

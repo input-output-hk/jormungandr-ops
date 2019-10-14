@@ -4,16 +4,16 @@ set -euxo pipefail
 
 # Credential setup
 
-if [ ! -f ./scripts/gen-graylog-creds.nix ]; then
+if [ ! -f ./secrets/graylog-creds.nix ]; then
   nix-shell ./scripts/gen-graylog-creds.nix
 fi
 
 # NixOps setup
 
-export NIXOPS_DEPLOYMENT=jormungandr-performance-aws
+export NIXOPS_DEPLOYMENT=jormungandr-performance-packet
 
 nixops destroy || true
 nixops delete || true
-nixops create ./deployments/jormungandr-performance-aws.nix -I nixpkgs=./nix
+nixops create ./deployments/jormungandr-performance-packet.nix -I nixpkgs=./nix
 nixops set-args --arg globals 'import ./globals.nix'
-nixops deploy
+# nixops deploy

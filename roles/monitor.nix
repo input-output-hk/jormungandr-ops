@@ -1,7 +1,7 @@
 { pkgs, lib, config, nodes, resources, ... }:
 let
   inherit (import ../globals.nix) domain;
-  inherit (lib) mapAttrs hasPrefix listToAttrs attrValues;
+  inherit (lib) mapAttrs hasPrefix listToAttrs attrValues nameValuePair;
 
   monitoringFor = name:
     if (hasPrefix "stake-" name) || (hasPrefix "relay-" name) then {
@@ -12,18 +12,17 @@ let
     } else if name == "monitor" then {
       hasNginx = true;
     } else
-      { };
+      abort "No monitoring specified for node ${name}";
+
+  mkMonitoredNodes = suffix:
+    listToAttrs (attrValues
+      (mapAttrs (name: node: nameValuePair "${name}${suffix}" (monitoringFor name))
+        nodes));
 
   monitoredNodes = {
-    ec2 = listToAttrs (attrValues (mapAttrs (name: node: {
-      name = "${name}-ip";
-      value = monitoringFor name;
-    }) nodes));
-
-    libvirtd = listToAttrs (attrValues (mapAttrs (name: node: {
-      inherit name;
-      value = monitoringFor name;
-    }) nodes));
+    ec2 = mkMonitoredNodes "-ip";
+    libvirtd = mkMonitoredNodes "";
+    packet = mkMonitoredNodes "";
   };
 
 in {
@@ -36,7 +35,7 @@ in {
   services.monitoring-services = {
     enable = true;
     webhost = config.node.fqdn;
-    enableACME = config.deployment.targetEnv == "ec2";
+    enableACME = config.deployment.targetEnv != "libvirtd";
 
     grafanaCreds = import ../secrets/grafana-creds.nix;
     graylogCreds = import ../secrets/graylog-creds.nix;
@@ -46,8 +45,8 @@ in {
   };
 
   systemd.services.graylog.environment.JAVA_OPTS = ''
-    -Djava.library.path=${pkgs.graylog}/lib/sigar -Xms1g -Xmx1g -XX:NewRatio=1 -server -XX:+ResizeTLAB -XX:+UseConcMarkSweepGC -XX:+CMSConcurrentMTEnabled -XX:+CMSClassUnloadingEnabled -XX:+UseParNewGC -XX:-OmitStackTraceInFastThrow
+    -Djava.library.path=${pkgs.graylog}/lib/sigar -Xms3g -Xmx3g -XX:NewRatio=1 -server -XX:+ResizeTLAB -XX:+UseConcMarkSweepGC -XX:+CMSConcurrentMTEnabled -XX:+CMSClassUnloadingEnabled -XX:+UseParNewGC -XX:-OmitStackTraceInFastThrow
   '';
 
-  services.elasticsearch.extraJavaOptions = [ "-Xms1g" "-Xmx1g" ];
+  services.elasticsearch.extraJavaOptions = [ "-Xms6g" "-Xmx6g" ];
 }

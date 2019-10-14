@@ -1,16 +1,15 @@
-{ name, config, resources, lib, ... }:
+{ name, config, resources, pkgs, lib, ... }:
 let
   inherit (lib) mkDefault;
   inherit (config.deployment.ec2) region;
-  inherit (import ../../globals.nix) accessKeyId domain;
-in {
-  deployment.targetEnv = "ec2";
 
+  inherit (import ../../globals.nix) ec2;
+  inherit (ec2.credentials) accessKeyId;
+  inherit (ec2) domain;
+in {
   imports = [ ../../modules/aws.nix ];
 
   deployment.ec2 = {
-    region = mkDefault "eu-central-1";
-
     keyPair = mkDefault resources.ec2KeyPairs."jormungandr-${region}";
 
     ebsInitialRootDiskSize = mkDefault 30;

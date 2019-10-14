@@ -58,6 +58,42 @@
         "url": "https://github.com/nmattia/niv/archive/1dd094156b249586b66c16200ecfd365c7428dc0.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
+    "nixops-core": {
+        "branch": "nixops-core-pr-int",
+        "description": "NixOps, the NixOS-based cloud deployment tool",
+        "homepage": "http://nixos.org/",
+        "owner": "input-output-hk",
+        "repo": "nixops",
+        "rev": "28dd42a2dc9f6bada1ea587de80cde8dae0ddbf0",
+        "sha256": "0a74c8f0hpb60s91f3igx63zx8amblp3iqr6ic3fdr28nvmvbhgr",
+        "type": "tarball",
+        "url": "https://github.com/input-output-hk/nixops/archive/28dd42a2dc9f6bada1ea587de80cde8dae0ddbf0.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "nixops-libvirtd": {
+        "branch": "master",
+        "description": "NixOps libvirtd backend plugin [maintainer=@AmineChikhaoui]",
+        "homepage": "",
+        "owner": "nix-community",
+        "repo": "nixops-libvirtd",
+        "rev": "8c278af0311caa29c1aa9a2cc63958316562ee3d",
+        "sha256": "06df6idmhmm0i4v40qyis9ckck4hy2nddrg5c0k7p7nc2ha32wds",
+        "type": "tarball",
+        "url": "https://github.com/nix-community/nixops-libvirtd/archive/8c278af0311caa29c1aa9a2cc63958316562ee3d.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "nixops-packet": {
+        "branch": "c2-medium-reserved-changes",
+        "description": "NixOps Packet.net Plugin",
+        "homepage": null,
+        "owner": "input-output-hk",
+        "repo": "nixops-packet",
+        "rev": "b96a78c57d315bb292318f7fb4f198b1483e188b",
+        "sha256": "15b7x6rilhmg42wmprqjaqadwcn8351a4wkf76m90rfqsk1piw64",
+        "type": "tarball",
+        "url": "https://github.com/input-output-hk/nixops-packet/archive/b96a78c57d315bb292318f7fb4f198b1483e188b.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "nixpkgs": {
         "branch": "nixos-19.09",
         "description": "A read-only mirror of NixOS/nixpkgs tracking the released channels. Send issues and PRs to",

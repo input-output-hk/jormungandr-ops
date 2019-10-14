@@ -1,14 +1,10 @@
 { config, resources, ... }:
 let sources = import ../nix/sources.nix;
 in {
-  imports = [
-    (sources.jormungandr-faucet + "/nix/nixos")
-    ./jormungandr-relay.nix
-  ];
+  imports =
+    [ (sources.jormungandr-faucet + "/nix/nixos") ./jormungandr-relay.nix ];
 
-  deployment.keys."faucet.sk" = {
-    keyFile = ../static/secrets/stake_1_key.sk;
-  };
+  deployment.keys."faucet.sk" = { keyFile = ../static/secrets/stake_1_key.sk; };
 
   deployment.ec2.securityGroups = [
     resources.ec2SecurityGroups."allow-public-www-https-${config.node.region}"
@@ -60,8 +56,8 @@ in {
 
     virtualHosts = {
       "jormungandr-faucet" = {
-        forceSSL = config.deployment.targetEnv == "ec2";
-        enableACME = config.deployment.targetEnv == "ec2";
+        forceSSL = config.deployment.targetEnv != "libvirtd";
+        enableACME = config.deployment.targetEnv != "libvirtd";
 
         locations."/" = {
           extraConfig = let

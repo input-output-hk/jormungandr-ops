@@ -1,72 +1,73 @@
-{ tiny, large }:
+{ targetEnv, tiny, large }:
 let
   inherit (import ../nix { }) lib;
   inherit (lib)
-    range listToAttrs mapAttrsToList nameValuePair foldl forEach filterAttrs recursiveUpdate;
+    range listToAttrs mapAttrsToList nameValuePair foldl forEach filterAttrs
+    recursiveUpdate;
 
   nodes = mkNodes {
     monitor = {
-      size = large;
-      role = ../roles/monitor.nix;
+      imports = [ tiny ../roles/monitor.nix ];
+      deployment.ec2.region = "eu-central-1";
+      deployment.packet.facility = "ams1";
     };
 
-    explorer = { role = ../roles/jormungandr-explorer.nix; };
-
-    faucet = { role = ../roles/jormungandr-faucet.nix; };
-
-    stake-euc1 = {
-      amount = 2;
-      region = "eu-central-1";
-      role = ../roles/jormungandr-stake.nix;
+    explorer = {
+      imports = [ tiny ../roles/jormungandr-explorer.nix ];
+      deployment.ec2.region = "eu-central-1";
+      deployment.packet.facility = "ams1";
     };
 
-    stake-use1 = {
-      amount = 2;
-      region = "us-east-1";
-      role = ../roles/jormungandr-stake.nix;
+    faucet = {
+      imports = [ tiny ../roles/jormungandr-faucet.nix ];
+      deployment.ec2.region = "eu-central-1";
+      deployment.packet.facility = "ams1";
     };
 
-    relay-euc1 = {
+    stake-ams1 = {
+      imports = [ tiny ../roles/jormungandr-stake.nix ];
       amount = 2;
-      region = "eu-central-1";
-      role = ../roles/jormungandr-relay.nix;
+      deployment.ec2.region = "eu-central-1";
+      deployment.packet.facility = "ams1";
     };
 
-    relay-use1 = {
-      amount = 2;
-      region = "us-east-1";
-      role = ../roles/jormungandr-relay.nix;
+    relay-ams1 = {
+      imports = [ tiny ../roles/jormungandr-relay.nix ];
+      amount = 1;
+      deployment.ec2.region = "eu-central-1";
+      deployment.packet.facility = "ams1";
     };
   };
 
-  mkNode = { size ? tiny, region, role, ... }: {
-    imports = [ size role ../modules/common.nix ];
-    deployment.ec2.region = region;
-  };
+  mkNode = args:
+    recursiveUpdate {
+      imports = args.imports ++ [ ../modules/common.nix ];
+      deployment.targetEnv = targetEnv;
+    } args;
 
   allStakeKeys = __attrNames (filterAttrs
     (fileName: _: (__match "^secret_pool_[0-9]+.yaml$" fileName) != null)
     (__readDir ../static/secrets));
 
   definitionToNode = name:
-    { amount ? null, region ? "eu-central-1", ... }@givenArgs:
-    let args = { inherit region; } // givenArgs;
+    { amount ? null, ... }@args:
+    let pass = removeAttrs args [ "amount" ];
     in (if amount != null then
       forEach (range 1 amount)
-      (n: nameValuePair "${name}-${toString n}" (mkNode args))
+      (n: nameValuePair "${name}-${toString n}" (mkNode pass))
     else
-      nameValuePair name (mkNode args));
+      nameValuePair name (mkNode pass));
 
-  addDeploymentKey = {name, value}: file:
-  {
-    inherit name;
-    value = recursiveUpdate {
-      deployment.keys."secret_pool.yaml" = {
-        keyFile = ../. + "/static/secrets/${file}";
-        user = "jormungandr";
-      };
-    } value;
-  };
+  addDeploymentKey = { name, value }:
+    file: {
+      inherit name;
+      value = recursiveUpdate {
+        deployment.keys."secret_pool.yaml" = {
+          keyFile = ../. + "/static/secrets/${file}";
+          user = "jormungandr";
+        };
+      } value;
+    };
 
   nextStakeKey = stakeKeys:
     if __length stakeKeys > 0 then
@@ -100,15 +101,14 @@ let
   foldNodes = { stakeKeys, nodes }:
     elem:
     let
-      withKey = 
-        if __typeOf elem == "set" then
-          addStakeKey stakeKeys elem
-        else
-          addStakeKeys stakeKeys elem;
-      in {
-        inherit (withKey) stakeKeys;
-        nodes = nodes ++ withKey.nodes;
-      };
+      withKey = if __typeOf elem == "set" then
+        addStakeKey stakeKeys elem
+      else
+        addStakeKeys stakeKeys elem;
+    in {
+      inherit (withKey) stakeKeys;
+      nodes = nodes ++ withKey.nodes;
+    };
 
   mkNodes = defs:
     listToAttrs (foldl foldNodes {

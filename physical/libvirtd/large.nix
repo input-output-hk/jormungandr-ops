@@ -1,4 +1,4 @@
 { pkgs, ... }: {
   imports = [ ./. ];
-  deployment.libvirtd.memorySize = 1024 * 4;
+  deployment.libvirtd.memorySize = 1024 * 10;
 }

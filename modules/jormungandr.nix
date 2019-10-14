@@ -8,7 +8,8 @@ let
 
   compact = l: filter (e: e != null) l;
   peerAddress = nodeName: node:
-    if nodeName != name && (node.config.services.jormungandr.enable or false) then
+    if nodeName != name
+    && (node.config.services.jormungandr.enable or false) then
       "/ip4/${node.config.networking.privateIPv4}/tcp/3000"
     else
       null;
