@@ -11,18 +11,6 @@
         "url": "https://github.com/input-output-hk/iohk-nix/archive/61eeda0bd3e64cad648c5a5c3f0e0c806dd9234b.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
-    "iohk-ops": {
-        "branch": "master",
-        "description": "NixOps deployment configuration for IOHK devops",
-        "homepage": "",
-        "owner": "input-output-hk",
-        "repo": "iohk-ops",
-        "rev": "d61dd51f7b961e244ed485cac51d3126f695b250",
-        "sha256": "0nzzcgkrsq8m4kcjr430rybindfkys8kn5vdnnzmmhw5c2i33c7x",
-        "type": "tarball",
-        "url": "https://github.com/input-output-hk/iohk-ops/archive/d61dd51f7b961e244ed485cac51d3126f695b250.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
     "jormungandr-faucet": {
         "branch": "nixos-19.09",
         "description": "faucet for jormungandr",
@@ -47,54 +35,6 @@
         "url": "https://github.com/input-output-hk/jormungandr-nix/archive/d7de30d152bf966a3f8076d30476d6e46b4591f8.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
-    "niv": {
-        "branch": "master",
-        "description": "Easy dependency management for Nix projects",
-        "homepage": "https://github.com/nmattia/niv",
-        "owner": "nmattia",
-        "repo": "niv",
-        "rev": "1dd094156b249586b66c16200ecfd365c7428dc0",
-        "sha256": "1b2vjnn8iac5iiqszjc2v1s1ygh0yri998c0k3s4x4kn0dsqik21",
-        "type": "tarball",
-        "url": "https://github.com/nmattia/niv/archive/1dd094156b249586b66c16200ecfd365c7428dc0.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
-    "nixops-core": {
-        "branch": "nixops-core-pr-int",
-        "description": "NixOps, the NixOS-based cloud deployment tool",
-        "homepage": "http://nixos.org/",
-        "owner": "input-output-hk",
-        "repo": "nixops",
-        "rev": "28dd42a2dc9f6bada1ea587de80cde8dae0ddbf0",
-        "sha256": "0a74c8f0hpb60s91f3igx63zx8amblp3iqr6ic3fdr28nvmvbhgr",
-        "type": "tarball",
-        "url": "https://github.com/input-output-hk/nixops/archive/28dd42a2dc9f6bada1ea587de80cde8dae0ddbf0.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
-    "nixops-libvirtd": {
-        "branch": "master",
-        "description": "NixOps libvirtd backend plugin [maintainer=@AmineChikhaoui]",
-        "homepage": "",
-        "owner": "nix-community",
-        "repo": "nixops-libvirtd",
-        "rev": "8c278af0311caa29c1aa9a2cc63958316562ee3d",
-        "sha256": "06df6idmhmm0i4v40qyis9ckck4hy2nddrg5c0k7p7nc2ha32wds",
-        "type": "tarball",
-        "url": "https://github.com/nix-community/nixops-libvirtd/archive/8c278af0311caa29c1aa9a2cc63958316562ee3d.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
-    "nixops-packet": {
-        "branch": "c2-medium-reserved-changes",
-        "description": "NixOps Packet.net Plugin",
-        "homepage": null,
-        "owner": "input-output-hk",
-        "repo": "nixops-packet",
-        "rev": "b96a78c57d315bb292318f7fb4f198b1483e188b",
-        "sha256": "15b7x6rilhmg42wmprqjaqadwcn8351a4wkf76m90rfqsk1piw64",
-        "type": "tarball",
-        "url": "https://github.com/input-output-hk/nixops-packet/archive/b96a78c57d315bb292318f7fb4f198b1483e188b.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
     "nixpkgs": {
         "branch": "nixos-unstable",
         "description": "A read-only mirror of NixOS/nixpkgs tracking the released channels. Send issues and PRs to",
@@ -105,6 +45,18 @@
         "sha256": "0p6bd16mb1k5c3zihl1c3d62m419rii102xfb340pccgbd8j34bc",
         "type": "tarball",
         "url": "https://github.com/NixOS/nixpkgs-channels/archive/94500c93dc239761bd144128a1684abcd08df6b7.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "ops-lib": {
+        "branch": "master",
+        "description": "NixOps deployment configuration library for IOHK devops ",
+        "homepage": null,
+        "owner": "input-output-hk",
+        "repo": "ops-lib",
+        "rev": "9b03bb8b03e50a1fdcc2f569772303fcab3755a3",
+        "sha256": "1ppqdkxkq9hry2jj26s9gnbvfkg2zxq7vcm7fzn1fbrbwcjqbzpf",
+        "type": "tarball",
+        "url": "https://github.com/input-output-hk/ops-lib/archive/9b03bb8b03e50a1fdcc2f569772303fcab3755a3.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
