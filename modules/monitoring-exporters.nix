@@ -140,6 +140,9 @@ in {
             default_type: journal
           output.logstash:
             hosts: ["${cfg.graylogHost}"]
+          journalbeat.inputs:
+            - paths:
+              - "/var/log/journal/"
         '';
       };
     })
