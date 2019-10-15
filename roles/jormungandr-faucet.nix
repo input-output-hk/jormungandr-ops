@@ -1,5 +1,6 @@
 { config, resources, ... }:
 let sources = import ../nix/sources.nix;
+    inherit (import ../globals.nix) domain;
 in {
   imports =
     [ (sources.jormungandr-faucet + "/nix/nixos") ./jormungandr-relay.nix ];
@@ -55,7 +56,7 @@ in {
     '';
 
     virtualHosts = {
-      "jormungandr-faucet" = {
+      "jormungandr-faucet.${domain}" = {
         forceSSL = config.deployment.targetEnv != "libvirtd";
         enableACME = config.deployment.targetEnv != "libvirtd";
 

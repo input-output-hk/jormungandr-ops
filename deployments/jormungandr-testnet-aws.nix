@@ -7,9 +7,9 @@ let
     attrValues filter filterAttrs flatten foldl' hasAttrByPath listToAttrs
     mapAttrs' nameValuePair recursiveUpdate unique;
 
-  cluster = import ../clusters/jormungandr-performance.nix {
+  cluster = import ../clusters/jormungandr-testnet.nix {
     targetEnv = "ec2";
-    tiny = ../physical/aws/t2.nano.nix;
+    tiny = ../physical/aws/t2.xlarge.nix;
     large = ../physical/aws/t3.xlarge.nix;
   };
 

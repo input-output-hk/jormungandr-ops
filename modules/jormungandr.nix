@@ -1,19 +1,29 @@
-{ config, name, nodes, resources, ... }:
+{ config, lib, name, nodes, resources, ... }:
 let
   sources = import ../nix/sources.nix;
 
   pkgs = import ../nix { };
   inherit (pkgs) jormungandr-cli jormungandr;
+  inherit (pkgs.packages) pp;
   inherit (builtins) filter attrValues mapAttrs;
 
   compact = l: filter (e: e != null) l;
   peerAddress = nodeName: node:
-    if nodeName != name
-    && (node.config.services.jormungandr.enable or false) then
-      "/ip4/${node.config.networking.privateIPv4}/tcp/3000"
+    let jcfg = node.config.services.jormungandr;
+    in if nodeName != name && (jcfg.enable or false)
+    && (__length jcfg.secrets-paths == 0) then
+      let
+        publicKeyCmd =
+          pkgs.runCommand "publicKey" { buildInputs = [ jormungandr-cli ]; } ''
+            echo ${jcfg.privateId} | jcli key to-public > $out
+          '';
+      in {
+        address = jcfg.publicAddress;
+        id = lib.fileContents publicKeyCmd;
+      }
     else
       null;
-  trustedPeersAddresses = compact (attrValues (mapAttrs peerAddress nodes));
+  trustedPeers = compact (attrValues (mapAttrs peerAddress nodes));
 in {
   imports = [
     (sources.jormungandr-nix + "/nixos")
@@ -33,22 +43,28 @@ in {
     package = jormungandr;
     jcliPackage = jormungandr-cli;
     rest.cors.allowedOrigins = [ ];
-    publicAddress = "/ip4/${config.networking.privateIPv4}/tcp/3000";
-    listenAddress = "/ip4/${config.networking.privateIPv4}/tcp/3000";
+    publicAddress = if config.deployment.targetEnv == "ec2" then
+      "/ip4/${resources.elasticIPs."${name}-ip".address}/tcp/3000"
+    else
+      "/ip4/${config.networking.publicIPv4}/tcp/3000";
+    listenAddress = "/ip4/0.0.0.0/tcp/3000";
     rest.listenAddress = "${config.networking.privateIPv4}:3001";
-    logger = { output = "journald"; };
-    inherit trustedPeersAddresses;
+    logger = {
+      level = "info";
+      output = "stderr";
+    };
+    maxConnections = 256;
+    inherit trustedPeers;
   };
+  systemd.services.jormungandr.serviceConfig.MemoryMax = "14G";
+
 
   networking.firewall.allowedTCPPorts = [ 3000 ];
 
   environment.variables.JORMUNGANDR_RESTAPI_URL =
     "http://${config.services.jormungandr.rest.listenAddress}/api";
 
-  environment.systemPackages = with pkgs; [
-    jormungandr-cli
-    janalyze
-  ];
+  environment.systemPackages = with pkgs; [ jormungandr-cli janalyze ];
 
   services.jormungandr-monitor.enable = true;
   services.nginx.enableReload = true;

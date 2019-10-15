@@ -6,10 +6,10 @@ let
   monitoringFor = name:
     if (hasPrefix "stake-" name) || (hasPrefix "relay-" name) then {
       hasJormungandrPrometheus = true;
-    } else if (name == "faucet") || (name == "explorer") then {
+    } else if (name == "jormungandr-faucet") || (name == "explorer") then {
       hasJormungandrPrometheus = true;
       hasNginx = true;
-    } else if name == "monitor" then {
+    } else if name == "monitoring" then {
       hasNginx = true;
     } else
       abort "No monitoring specified for node ${name}";
@@ -37,9 +37,11 @@ in {
     webhost = config.node.fqdn;
     enableACME = config.deployment.targetEnv != "libvirtd";
 
+    deadMansSnitch = import ../secrets/dead-mans-snitch.nix;
     grafanaCreds = import ../secrets/grafana-creds.nix;
     graylogCreds = import ../secrets/graylog-creds.nix;
     oauth = import ../secrets/oauth.nix;
+    pagerDuty = import ../secrets/pager-duty.nix;
 
     monitoredNodes = monitoredNodes.${config.deployment.targetEnv};
   };

@@ -1,5 +1,7 @@
 { lib, config, resources, ... }:
 let inherit (config.node) fqdn;
+  enableSSL = config.deployment.targetEnv != "libvirtd";
+  protocol = if enableSSL then "https" else "http";
 in {
   imports = [ ./jormungandr-relay.nix ];
 
@@ -10,9 +12,9 @@ in {
   services.jormungandr-explorer = {
     enable = true;
     virtualHost = "${fqdn}";
-    enableSSL = false;
-    jormungandrApi = "http://${fqdn}/explorer/graphql";
+    inherit enableSSL;
+    jormungandrApi = "${protocol}://${fqdn}/explorer/graphql";
   };
 
-  services.jormungandr.rest.cors.allowedOrigins = [ "http://${fqdn}" ];
+  services.jormungandr.rest.cors.allowedOrigins = [ "${protocol}://${fqdn}" ];
 }

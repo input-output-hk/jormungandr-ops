@@ -2,3 +2,4 @@
 globals.nix
 static/
 secrets/
+stats/

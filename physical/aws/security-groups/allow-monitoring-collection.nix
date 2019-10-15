@@ -1,11 +1,11 @@
 { region, accessKeyId }: {
   "allow-monitoring-collection-${region}" = { nodes, resources, lib, ... }:
-    let monitoringSourceIp = resources.elasticIPs.monitor-ip;
+    let monitoringSourceIp = resources.elasticIPs.monitoring-ip;
     in {
       inherit region accessKeyId;
       _file = ./allow-monitoring-collection.nix;
       description = "Monitoring collection";
-      rules = lib.optionals (nodes ? "monitor") [
+      rules = lib.optionals (nodes ? "monitoring") [
         {
           protocol = "tcp";
           fromPort = 8000;
