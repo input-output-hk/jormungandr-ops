@@ -21,35 +21,35 @@ let
       imports = [ large ../roles/monitor.nix ];
       deployment.ec2.region = "eu-central-1";
       deployment.packet.facility = "ams1";
-      isMonitoring = true;
+      node.isMonitoring = true;
     };
 
     explorer = {
       imports = [ tiny ../roles/jormungandr-explorer.nix ];
       deployment.ec2.region = "eu-central-1";
       deployment.packet.facility = "ams1";
-      isRelay = true;
+      node.isExplorer = true;
     };
 
     jormungandr-faucet = {
       imports = [ tiny ../roles/jormungandr-faucet.nix ];
       deployment.ec2.region = "eu-central-1";
       deployment.packet.facility = "ams1";
-      isRelay = true;
+      node.isFaucet = true;
     };
 
     stake-euc1 = {
       imports = [ tiny ../roles/jormungandr-stake.nix ];
       deployment.ec2.region = "eu-central-1";
       deployment.packet.facility = "ams1";
-      isStake = true;
+      node.isStake = true;
     };
 
     stake-apn1 = {
       imports = [ tiny ../roles/jormungandr-stake.nix ];
       deployment.ec2.region = "ap-northeast-1";
       deployment.packet.facility = "ams1";
-      isStake = true;
+      node.isStake = true;
     };
   } // relays);
 in {

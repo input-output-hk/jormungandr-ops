@@ -1,6 +1,8 @@
 { lib, config, ... }:
 with lib;
-with types; {
+with types;
+let cfg = config.nodes;
+in {
   options = {
     node = mkOption {
       description = "Node-specific parameters.";
@@ -74,6 +76,36 @@ with types; {
             description =
               "Node-specific EIP allocation override.  You must provide <name>-ip.";
             default = config.cluster.allocateElasticIP;
+          };
+
+          isJormungandr = mkOption {
+            type = bool;
+            default = false;
+          };
+
+          isRelay = mkOption {
+            type = bool;
+            default = false;
+          };
+
+          isStake = mkOption {
+            type = bool;
+            default = false;
+          };
+
+          isMonitoring = mkOption {
+            type = bool;
+            default = false;
+          };
+
+          isExplorer = mkOption {
+            type = bool;
+            default = false;
+          };
+
+          isFaucet = mkOption {
+            type = bool;
+            default = false;
           };
         };
       };
@@ -172,5 +204,10 @@ with types; {
         "Specify a bucket name to use an existing bucket to upload docker images to. If set to null (default) a bucket will be created.";
       default = null;
     };
+  };
+
+  config.node = {
+    isJormungandr = mkIf (cfg.isRelay || cfg.isStake) true;
+    isRelay = mkIf (cfg.isRelay || cfg.isExplorer || cfg.isExplorer) true;
   };
 }

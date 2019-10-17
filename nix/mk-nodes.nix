@@ -29,9 +29,7 @@ let
     recursiveUpdate {
       imports = args.imports ++ [ ../modules/common.nix ];
       deployment.targetEnv = targetEnv;
-      isStake = false;
-      isRelay = false;
-      isMonitoring = false;
+      node.isStake = false;
     } args;
 
   definitionToNode = name:
@@ -75,7 +73,7 @@ let
       elems;
 
   addStakeKey = stakeKeys: elem:
-    if elem.value.isStake then {
+    if elem.value.node.isStake then {
       nodes = [ (addDeploymentKey elem (nextStakeKey stakeKeys)) ];
       stakeKeys = __tail stakeKeys;
     } else {
