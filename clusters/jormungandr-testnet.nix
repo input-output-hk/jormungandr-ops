@@ -9,6 +9,7 @@ let
       imports = [ tiny ../roles/jormungandr-relay.nix ];
       inherit amount;
       deployment.ec2.region = region;
+      isRelay = true;
     }) {
       eu-central-1 = 3;
       ap-northeast-1 = 2;
@@ -20,30 +21,35 @@ let
       imports = [ large ../roles/monitor.nix ];
       deployment.ec2.region = "eu-central-1";
       deployment.packet.facility = "ams1";
+      isMonitoring = true;
     };
 
     explorer = {
       imports = [ tiny ../roles/jormungandr-explorer.nix ];
       deployment.ec2.region = "eu-central-1";
       deployment.packet.facility = "ams1";
+      isRelay = true;
     };
 
     jormungandr-faucet = {
       imports = [ tiny ../roles/jormungandr-faucet.nix ];
       deployment.ec2.region = "eu-central-1";
       deployment.packet.facility = "ams1";
+      isRelay = true;
     };
 
     stake-euc1 = {
       imports = [ tiny ../roles/jormungandr-stake.nix ];
       deployment.ec2.region = "eu-central-1";
       deployment.packet.facility = "ams1";
+      isStake = true;
     };
 
     stake-apn1 = {
       imports = [ tiny ../roles/jormungandr-stake.nix ];
       deployment.ec2.region = "ap-northeast-1";
       deployment.packet.facility = "ams1";
+      isStake = true;
     };
   } // relays);
 in {

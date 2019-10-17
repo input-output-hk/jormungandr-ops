@@ -24,6 +24,8 @@ let
     else
       null;
   trustedPeers = compact (attrValues (mapAttrs peerAddress nodes));
+
+  privateIds = __fromJSON (__readFile (../secrets/jormungandr-private-ids.json));
 in {
   imports = [
     (sources.jormungandr-nix + "/nixos")
@@ -53,8 +55,9 @@ in {
       level = "info";
       output = "stderr";
     };
-    maxConnections = 256;
     inherit trustedPeers;
+    maxConnections = 11000;
+    privateId = privateIds."${name}" or (abort "run ./scripts/update-jormungandr-private-ids.rb");
   };
   systemd.services.jormungandr.serviceConfig.MemoryMax = "14G";
 
@@ -66,6 +69,13 @@ in {
 
   environment.systemPackages = with pkgs; [ jormungandr-cli janalyze ];
 
-  services.jormungandr-monitor.enable = true;
+  services.jormungandr-monitor = {
+    enable = true;
+    genesisYaml =
+      if (builtins.pathExists ../static/genesis.yaml)
+      then ../static/genesis.yaml
+      else null;
+  };
+
   services.nginx.enableReload = true;
 }
