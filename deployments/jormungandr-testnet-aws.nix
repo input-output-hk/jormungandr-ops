@@ -1,4 +1,4 @@
-{ globals, ... }:
+{ globals ? import ../globals.nix, ... }:
 let
   inherit (globals.ec2) credentials;
   inherit (credentials) accessKeyId;

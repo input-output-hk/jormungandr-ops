@@ -1,5 +1,7 @@
 { pkgs, lib, config, nodes, resources, ... }:
 let
+  sources = import ../nix/sources.nix;
+
   inherit (import ../globals.nix) domain;
   inherit (lib) mapAttrs hasPrefix listToAttrs attrValues nameValuePair;
 
@@ -44,6 +46,10 @@ in {
     pagerDuty = import ../secrets/pager-duty.nix;
 
     monitoredNodes = monitoredNodes.${config.deployment.targetEnv};
+
+    applicationDashboards = [
+      (sources.jormungandr-nix + "/nixos/jormungandr-monitor/grafana.json")
+    ];
   };
 
   systemd.services.graylog.environment.JAVA_OPTS = ''

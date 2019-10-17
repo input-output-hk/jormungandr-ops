@@ -153,8 +153,8 @@ in {
       };
 
       applicationDashboards = mkOption {
-        type = types.nullOr types.path;
-        default = null;
+        type = types.listOf types.path;
+        default = [];
         description = ''
           Application specific dashboards.
         '';
@@ -476,17 +476,20 @@ in {
             '';
           };
         };
+
         grafana = {
           enable = true;
           users.allowSignUp = false;
           addr = "";
           domain = "${cfg.webhost}";
           rootUrl = "%(protocol)ss://%(domain)s/grafana/";
+
           extraOptions = lib.mkIf cfg.oauth.enable {
             AUTH_GOOGLE_ENABLED = "true";
             AUTH_GOOGLE_CLIENT_ID = cfg.oauth.clientID;
             AUTH_GOOGLE_CLIENT_SECRET = cfg.oauth.clientSecret;
           };
+
           provision = {
             enable = true;
             datasources = [{
@@ -494,15 +497,24 @@ in {
               name = "prometheus";
               url = "http://localhost:9090/prometheus";
             }];
+
             dashboards = [{
               name = "generic";
               options.path = ./grafana/generic;
-            }] ++ (if (cfg.applicationDashboards != null) then [{
+            }] ++ (if (cfg.applicationDashboards != []) then [{
               name = "application";
-              options.path = cfg.applicationDashboards;
+              options.path = pkgs.runCommandNoCC "dashboards-application" {
+                files = cfg.applicationDashboards;
+              } ''
+                mkdir $out
+                for f in $files; do
+                  cp $f $out
+                done
+              '';
             }] else
               [ ]);
           };
+
           security = {
             adminPassword = traceValFn (x:
               if x == "changeme" then ''
