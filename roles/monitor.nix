@@ -3,23 +3,18 @@ let
   sources = import ../nix/sources.nix;
 
   inherit (import ../globals.nix) domain;
-  inherit (lib) mapAttrs hasPrefix listToAttrs attrValues nameValuePair;
+  inherit (lib) mapAttrs' hasPrefix listToAttrs attrValues nameValuePair;
 
-  monitoringFor = name:
-    if (hasPrefix "stake-" name) || (hasPrefix "relay-" name) then {
-      hasJormungandrPrometheus = true;
-    } else if (name == "jormungandr-faucet") || (name == "explorer") then {
-      hasJormungandrPrometheus = true;
-      hasNginx = true;
-    } else if name == "monitoring" then {
-      hasNginx = true;
-    } else
-      abort "No monitoring specified for node ${name}";
+  monitoringFor = node:
+    let cfg = node.config.node;
+    in {
+      hasJormungandrPrometheus = cfg.isRelay || cfg.isStake;
+      hasNginx = cfg.isFaucet || cfg.isExplorer || cfg.isMonitoring;
+    };
 
   mkMonitoredNodes = suffix:
-    listToAttrs (attrValues
-      (mapAttrs (name: node: nameValuePair "${name}${suffix}" (monitoringFor name))
-        nodes));
+    mapAttrs'
+    (name: node: nameValuePair "${name}${suffix}" (monitoringFor node)) nodes;
 
   monitoredNodes = {
     ec2 = mkMonitoredNodes "-ip";
@@ -47,9 +42,8 @@ in {
 
     monitoredNodes = monitoredNodes.${config.deployment.targetEnv};
 
-    applicationDashboards = [
-      (sources.jormungandr-nix + "/nixos/jormungandr-monitor/grafana.json")
-    ];
+    applicationDashboards =
+      [ (sources.jormungandr-nix + "/nixos/jormungandr-monitor/grafana.json") ];
   };
 
   systemd.services.graylog.environment.JAVA_OPTS = ''
