@@ -1,4 +1,4 @@
-{ globals, ... }:
+{ globals ? import ../globals.nix, ... }:
 let
   inherit (globals.packet) credentials;
 
@@ -20,9 +20,9 @@ let
         recordValues = [ resources.machines.${name} ];
       };
     }) { # todo, need to use resources.machines
-      monitor = 1;
+      monitoring = 1;
       explorer = 1;
-      faucet = 1;
+      jormungandr-faucet = 1;
     };
   };
 in cluster // settings

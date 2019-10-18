@@ -1,55 +1,68 @@
 #!/usr/bin/env bash
 
-# nixops ssh-for-each
+set -e
 
-nodes="$(nix eval --raw "$(cat <<NIX
-(toString
-  (builtins.attrNames
-    (builtins.removeAttrs
-      ((import ./deployments/jormungandr-performance-packet.nix) { globals = import ./globals.nix; })
-      [ "resources" "monitor" "network" ])))
-NIX
-)")"
+# How long to run the test for
+hours=1
 
-time="$(date +%Y-%d-%m-%H-%M)"
-statdir="$PWD/stats/$time"
-mkdir -p $statdir
+IFS=" " read -r -a nodes <<< "$(nix eval --raw '((import ./scripts/nodes.nix).string)')"
 
-echo "stats will be stored in $statdir"
-echo "gathering logs..."
+seconds=$((hours * 60 * 60))
+from_time="$(date +%s)"
+to_time="$((from_time + seconds))"
+from_date="$(date --iso-8601=minutes)"
+stats_dir="$PWD/stats"
+dir="$stats_dir/$from_date"
+report="$dir.tar.xz"
 
-for node in $nodes; do
-  (
-    nixops ssh "$node" -- journalctl -xe -u jormungandr > "$statdir/$node.systemd.log"
-    nixops ssh "$node" -- janalyze -a 100 > "$statdir/$node.janalyze.aggregate.log"
-    nixops ssh "$node" -- janalyze -b > "$statdir/$node.janalyze.bigvaluesort.log"
-    nixops ssh "$node" -- janalyze -d > "$statdir/$node.janalyze.distribution.log"
-    nixops ssh "$node" -- janalyze -f > "$statdir/$node.janalyze.full.log"
-    nixops ssh "$node" -- janalyze -s > "$statdir/$node.janalyze.stats.log"
-    nixops ssh "$node" -- janalyze -x > "$statdir/$node.janalyze.crossref.log"
-  ) &
+for node in "${nodes[@]}"; do
+  mkdir -p "$dir/$node/db" "$dir/$node/janalyze"
 done
 
-echo "waiting for log extraction to finish..."
-wait
+cp -r static/ "$dir/chain_configuration"
 
-echo "stopping nodes..."
-nixops ssh-for-each -p --exclude resources monitor network -- systemctl stop jormungandr
+echo "Stats will be stored in $dir."
+echo "Gathering janalyze stats..."
 
-echo "gathering dbs..."
-for node in $nodes; do
-  nixops scp --from "$node" /var/lib/jormungandr/blocks.sqlite "$statdir/$node.sqlite" &
+while [[ $(date +%s) -lt $to_time ]]; do
+  now="$(date --iso-8601=seconds)"
+  printf "\r%02d minutes remaining..." "$(((to_time - $(date +%s)) / 60))"
+
+  for node in "${nodes[@]}"; do
+    echo nixops ssh "$node" -- janalyze -x -j > "$dir/$node/janalyze/$now.json" &
+  done
+
+  wait
+  sleep 10
 done
 
-echo "waiting for db extraction to finish..."
+echo "Finishing the test."
+
+for node in "${nodes[@]}"; do
+  echo nixops ssh "$node" -- journalctl -xb -u jormungandr > "$dir/$node/systemd.log" &
+done
+
+echo "Gathering systemd logs..."
 wait
 
-echo "stats remain in $statdir"
+echo "Stopping nodes..."
+for node in "${nodes[@]}"; do
+  echo nixops ssh "$node" -- systemctl stop jormungandr &
+done
+sleep 10
 
-statsZip="$PWD/stats/$time-stats.zip"
-zip -r -9 "$statsZip" "$statdir"
-echo "logs and dbs stored in $statsZip"
+for node in "${nodes[@]}"; do
+  for f in blocks.sqlite blocks.sqlite-shm blocks.sqlite-wal; do
+    echo nixops scp --from "$node" "/var/lib/jormungandr/$f" "$dir/$node/db/$f" &
+  done
+done
 
-chainZip="$PWD/stats/$time-chain.zip"
-zip -r -9 "$chainZip" static
-echo "blockchain config stored in $chainZip"
+echo "Gathering dbs..."
+wait
+
+echo "Stats remain in $dir"
+
+tar -OcvJ -C "$dir" . > "$report"
+echo "Report stored in $report"
+
+echo "Don't forget to destroy the cluster after you're done."

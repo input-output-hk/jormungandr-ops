@@ -14,13 +14,13 @@ nix-shell ../jormungandr-nix/shell.nix \
 --arg customConfig "$(cat <<CONFIG
 rec {
   consensus_genesis_praos_active_slot_coeff = 0.2;
-  faucetAmount = 1000000000000;
+  faucetAmount = 1000000000000 / numberOfStakePools;
   kes_update_speed = 1800;
   linear_fees_certificate = 10000;
   linear_fees_coefficient = 50;
   linear_fees_constant = 1000;
-  numberOfLeaders = 4;
-  numberOfStakePools = numberOfLeaders;
+  numberOfLeaders = numberOfStakePools;
+  numberOfStakePools = __length (__attrNames (import ./scripts/nodes.nix).stakes);
   rootDir = "$dir";
   slot_duration = 2;
   slots_per_epoch = 150;

@@ -3,7 +3,7 @@
 set -ex
 
 if [[ -z "$*" ]]; then
-  nodes=("$(nix eval --raw '((import ./scripts/nodes.nix).string)')")
+  IFS=" " read -r -a nodes <<< "$(nix eval --raw '((import ./scripts/nodes.nix).string)')"
 else
   nodes=("$@")
 fi
