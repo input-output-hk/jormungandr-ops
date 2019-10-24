@@ -72,17 +72,17 @@ main = do
         fund = Object $ HM.fromList [("fund", Array $ V.fromList funds)]
         initial = certStakePoolEntries <> certDelegationEntries <> [ fund ]
         writeSecrets :: (StakePool, Int) -> IO ()
-        writeSecrets (StakePool{leaderSecret, kesSecret, vrfSecret}, index) = do
+        writeSecrets (StakePool{leaderPublic, leaderSecret, kesSecret, vrfSecret}, index) = do
           let
             writeText :: Format Text (Int -> Text) -> Text -> IO ()
             writeText fmt content = writeFile (T.unpack $ format fmt index) (T.unpack content)
           writeText ("leader_"%d%"_key.sk") (unSecret leaderSecret)
           writeText ("stake_pool_"%d%".kes.sk") (unSecret kesSecret)
           writeText ("stake_pool_"%d%".vrf.sk") (unSecret vrfSecret)
+          writeText ("stake_"%d%"_key.pk") (unPublic leaderPublic)
       encodeFile "genesis.initial.yaml" initial
       mapM_ writeSecrets (zip stakePools (range (1, stakePoolCount cfg)))
       pure ()
-  putStrLn "hello world"
   go args
 
 generateSecret :: Flag1 -> IO SecretKey

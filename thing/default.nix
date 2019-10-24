@@ -16,4 +16,10 @@ in lib.fix (self: {
     mkdir -pv $out/bin/
     ghc ./main.hs -o $out/bin/thing
   '';
+  helper = pkgs.writeShellScript "helper" ''
+    set -e
+    export PATH=${lib.makeBinPath [ self.jcli ]}:$PATH
+    ${self.thing}/bin/thing ${inputConfig}
+    cat genesis.initial.yaml | jq '{ initial: ., genesis_config_things: 42 }' > genesis.yaml
+  '';
 })
