@@ -1,4 +1,4 @@
-{ region, accessKeyId }: {
+{ region, accessKeyId, ... }: {
   "allow-all-${region}" = {
     inherit region accessKeyId;
     _file = ./allow-all.nix;

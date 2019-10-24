@@ -8,22 +8,23 @@ if [ -d "$dir" ]; then
     rm -rf "$dir"
 fi
 
-nix-shell ../jormungandr-nix/shell.nix \
+nix-shell ../jormungandr-nix2/shell.nix \
 -A bootstrap \
 --run 'echo done' \
 --arg customConfig "$(cat <<CONFIG
 rec {
-  consensus_genesis_praos_active_slot_coeff = 0.2;
-  faucetAmount = 1000000000000;
-  kes_update_speed = 1800;
+  consensus_genesis_praos_active_slot_coeff = 0.1;
+  faucetAmount = 100000000000000 / numberOfStakePools;
+  kes_update_speed = 86400;
+  block0_date = $(date +%s);
   linear_fees_certificate = 10000;
   linear_fees_coefficient = 50;
   linear_fees_constant = 1000;
-  numberOfLeaders = 4;
-  numberOfStakePools = numberOfLeaders;
+  numberOfLeaders = numberOfStakePools;
+  numberOfStakePools = __length (__attrNames (import ./scripts/nodes.nix).stakes);
   rootDir = "$dir";
   slot_duration = 2;
-  slots_per_epoch = 150;
+  slots_per_epoch = 7200;
 }
 CONFIG
 )"

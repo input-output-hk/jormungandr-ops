@@ -67,7 +67,7 @@ in {
   environment.variables.JORMUNGANDR_RESTAPI_URL =
     "http://${config.services.jormungandr.rest.listenAddress}/api";
 
-  environment.systemPackages = with pkgs; [ jormungandr-cli janalyze ];
+  environment.systemPackages = with pkgs; [ jormungandr-cli janalyze sendFunds ];
 
   services.jormungandr-monitor = {
     enable = true;

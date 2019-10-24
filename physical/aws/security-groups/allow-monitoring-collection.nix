@@ -1,4 +1,4 @@
-{ region, accessKeyId }: {
+{ region, accessKeyId, ... }: {
   "allow-monitoring-collection-${region}" = { nodes, resources, lib, ... }:
     let monitoringSourceIp = resources.elasticIPs.monitoring-ip;
     in {

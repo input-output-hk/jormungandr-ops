@@ -2,7 +2,7 @@
 
 node=$1
 
-nixops ssh stake-euc1 -- <<'EOF'
+nixops ssh "$node" -- <<'EOF'
 start="$(systemctl cat jormungandr | grep -Po '(?<=ExecStart=)(\S+)')"
 cfg="$(grep -Po '(\S+config\.yaml)' "$start")"
 jq . "$cfg"
