@@ -7,11 +7,13 @@ module Main (main) where
 import System.Environment (getArgs)
 import Turtle
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import Data.Ix
 import Data.Aeson
 import GHC.Generics
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Vector as V
+import qualified Data.ByteString.Lazy as LBS
 
 data Flag1 = NormalKey | ExtendedKey | VRFKey | KESKey
 data DelegationCert
@@ -35,7 +37,14 @@ data StakePool = StakePool
   , kesPublic :: PublicKey
   , signedCertificate :: SignedCert StakePoolCert
   , signedDelegationCert :: SignedCert DelegationCert
+  , stakePoolId :: PoolId
   } deriving Show
+
+data StakePoolSecret = StakePoolSecret
+  { nodeId :: PoolId
+  , vrfKey :: SecretKey
+  , sigKey :: SecretKey
+  } deriving Generic
 
 data InputConfig = InputConfig
   { stakePoolBalances :: [Integer]
@@ -44,6 +53,15 @@ data InputConfig = InputConfig
 
 instance FromJSON InputConfig where
   parseJSON = genericParseJSON defaultOptions
+
+instance ToJSON StakePoolSecret where
+  toJSON = genericToJSON (defaultOptions { fieldLabelModifier = camelTo2 '_' })
+
+instance ToJSON SecretKey where
+  toJSON (SecretKey key) = String key
+
+instance ToJSON PoolId where
+  toJSON (PoolId poolid) = String poolid
 
 main :: IO ()
 main = do
@@ -72,14 +90,15 @@ main = do
         fund = Object $ HM.fromList [("fund", Array $ V.fromList funds)]
         initial = certStakePoolEntries <> certDelegationEntries <> [ fund ]
         writeSecrets :: (StakePool, Int) -> IO ()
-        writeSecrets (StakePool{leaderPublic, leaderSecret, kesSecret, vrfSecret}, index) = do
+        writeSecrets (StakePool{leaderPublic, leaderSecret, kesSecret, vrfSecret, stakePoolId, signedCertificate, signedDelegationCert}, index) = do
           let
             writeText :: Format Text (Int -> Text) -> Text -> IO ()
             writeText fmt content = writeFile (T.unpack $ format fmt index) (T.unpack content)
+            secrets = StakePoolSecret stakePoolId vrfSecret kesSecret
           writeText ("leader_"%d%"_key.sk") (unSecret leaderSecret)
-          writeText ("stake_pool_"%d%".kes.sk") (unSecret kesSecret)
-          writeText ("stake_pool_"%d%".vrf.sk") (unSecret vrfSecret)
-          writeText ("stake_"%d%"_key.pk") (unPublic leaderPublic)
+          writeText ("secret_pool_"%d%".yaml") (T.decodeUtf8 $ LBS.toStrict $ encode $ Object $ HM.fromList [("genesis", toJSON secrets)])
+          writeText ("secret_pool_"%d%".signcert") (unSignedCert signedCertificate)
+          writeText ("leader_"%d%"_delegation.signcert") (unSignedCert signedDelegationCert)
       encodeFile "genesis.initial.yaml" initial
       mapM_ writeSecrets (zip stakePools (range (1, stakePoolCount cfg)))
       pure ()
@@ -130,12 +149,12 @@ generateStakePool = do
     cmd = format ("jcli certificate new stake-pool-registration --kes-key "%s%" --vrf-key "%s%" --owner "%s%" --serial 1010101010 --management-threshold 1 --start-validity 0") (unPublic kesPublic) (unPublic vrfPublic) (unPublic leaderPublic)
   certRegistration <- Certificate . lineToText <$> single (inshell cmd empty)
   signedCertificate <- signCertificate certRegistration leaderSecret
-  poolId <- getPoolId signedCertificate
+  stakePoolId <- getPoolId signedCertificate
   let
-    cmd2 = format ("jcli certificate new stake-delegation "%s%" "%s) (unPoolId poolId) (unPublic leaderPublic)
+    cmd2 = format ("jcli certificate new stake-delegation "%s%" "%s) (unPoolId stakePoolId) (unPublic leaderPublic)
   delegationCert <- Certificate . lineToText <$> single (inshell cmd2 empty)
   signedDelegationCert <- signCertificate delegationCert leaderSecret
-  pure $ StakePool{leaderSecret, leaderPublic, leaderAddress, vrfSecret, vrfPublic, kesSecret, kesPublic, signedCertificate, signedDelegationCert}
+  pure $ StakePool{leaderSecret, leaderPublic, leaderAddress, vrfSecret, vrfPublic, kesSecret, kesPublic, signedCertificate, signedDelegationCert, stakePoolId}
 
 generateStakePools :: Int -> IO [StakePool]
 generateStakePools count = mapM (\_ -> generateStakePool) (range (1,count))
