@@ -10,9 +10,7 @@ fi
 
 # NixOps setup
 
-export NIXOPS_DEPLOYMENT=jormungandr-testnet-aws
-
 nixops destroy || true
 nixops delete || true
-nixops create ./deployments/jormungandr-testnet-aws.nix -I nixpkgs=./nix
+nixops create ./deployments/$NIXOPS_DEPLOYMENT.nix -I nixpkgs=./nix
 nixops set-args --arg globals 'import ./globals.nix'

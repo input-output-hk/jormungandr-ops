@@ -1,4 +1,4 @@
-{ pkgs, lib, config, nodes, resources, ... }:
+{ pkgs, lib, config, nodes, resources, name, deploymentName, ... }:
 let
   sources = import ../nix/sources.nix;
 
@@ -22,8 +22,17 @@ let
     packet = mkMonitoredNodes "";
   };
 
+  loadFile = file:
+    if __pathExists file then import file else {};
+
 in {
-  imports = [ ../modules/monitoring-services.nix ../modules/common.nix ];
+  imports = [
+    ../modules/monitoring-services.nix
+    ../modules/common.nix
+    ../modules/monitoring-alerts.nix
+  ];
+
+  node.fqdn = "${name}.${domain}";
 
   deployment.ec2.securityGroups = [
     resources.ec2SecurityGroups."allow-public-www-https-${config.node.region}"
@@ -33,12 +42,13 @@ in {
     enable = true;
     webhost = config.node.fqdn;
     enableACME = config.deployment.targetEnv != "libvirtd";
+    extraHeader = "Deployment Name: ${deploymentName}<br>";
 
-    deadMansSnitch = import ../secrets/dead-mans-snitch.nix;
-    grafanaCreds = import ../secrets/grafana-creds.nix;
-    graylogCreds = import ../secrets/graylog-creds.nix;
-    oauth = import ../secrets/oauth.nix;
-    pagerDuty = import ../secrets/pager-duty.nix;
+    deadMansSnitch = loadFile ../secrets/dead-mans-snitch.nix;
+    grafanaCreds = loadFile ../secrets/grafana-creds.nix;
+    graylogCreds = loadFile ../secrets/graylog-creds.nix;
+    oauth = loadFile ../secrets/oauth.nix;
+    pagerDuty = loadFile ../secrets/pager-duty.nix;
 
     monitoredNodes = monitoredNodes.${config.deployment.targetEnv};
 
@@ -51,4 +61,5 @@ in {
   '';
 
   services.elasticsearch.extraJavaOptions = [ "-Xms6g" "-Xmx6g" ];
+  services.zfs.trim.enabled = true;
 }

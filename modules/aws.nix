@@ -1,7 +1,7 @@
 { lib, config, ... }:
 with lib;
 with types;
-let cfg = config.nodes;
+let cfg = config.node;
 in {
   options = {
     node = mkOption {
@@ -80,12 +80,12 @@ in {
 
           isJormungandr = mkOption {
             type = bool;
-            default = false;
+            default = cfg.isRelay || cfg.isStake;
           };
 
           isRelay = mkOption {
             type = bool;
-            default = false;
+            default = cfg.isFaucet || cfg.isExplorer;
           };
 
           isStake = mkOption {
@@ -204,10 +204,5 @@ in {
         "Specify a bucket name to use an existing bucket to upload docker images to. If set to null (default) a bucket will be created.";
       default = null;
     };
-  };
-
-  config.node = {
-    isJormungandr = mkIf (cfg.isRelay || cfg.isStake) true;
-    isRelay = mkIf (cfg.isRelay || cfg.isExplorer || cfg.isExplorer) true;
   };
 }

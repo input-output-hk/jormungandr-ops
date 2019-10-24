@@ -1,4 +1,4 @@
-{ region, accessKeyId }: {
+{ region, accessKeyId, ... }: {
   "allow-deployer-ssh-${region}" = {
     inherit region accessKeyId;
     _file = ./allow-deployer-ssh.nix;

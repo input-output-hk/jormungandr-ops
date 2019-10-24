@@ -1,4 +1,4 @@
-{ region, accessKeyId }: {
+{ region, accessKeyId, ... }: {
   "allow-public-www-https-${region}" = {
     _file = ./allow-public-www-https.nix;
     inherit region accessKeyId;

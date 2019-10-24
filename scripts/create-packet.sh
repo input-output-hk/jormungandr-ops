@@ -10,8 +10,6 @@ fi
 
 # NixOps setup
 
-export NIXOPS_DEPLOYMENT=jormungandr-performance-packet
-
 nixops destroy || true
 nixops delete || true
 nixops create ./deployments/jormungandr-performance-packet.nix -I nixpkgs=./nix

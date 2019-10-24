@@ -1,9 +1,11 @@
-{ config, resources, ... }:
+{ config, resources, name, ... }:
 let sources = import ../nix/sources.nix;
     inherit (import ../globals.nix) domain;
 in {
   imports =
     [ (sources.jormungandr-faucet + "/nix/nixos") ./jormungandr-relay.nix ];
+
+  node.fqdn = "${name}.${domain}";
 
   deployment.keys."faucet.sk" = { keyFile = ../static/secrets/stake_1_key.sk; };
 

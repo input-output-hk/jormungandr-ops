@@ -1,4 +1,4 @@
-{ pkgs, lib, name, config, ... }:
+{ pkgs, lib, name, config, resources, ... }:
 let
   sshKeys =
     import ((import ../nix/sources.nix).iohk-ops + "/lib/ssh-keys.nix") {
@@ -23,6 +23,7 @@ in {
     mosh
     ncdu
     sysstat
+    sqliteInteractive
     tcpdump
     tig
     tree
@@ -98,4 +99,8 @@ in {
     from = 60000;
     to = 61000;
   }];
+
+  deployment.ec2.securityGroups = [
+    resources.ec2SecurityGroups."allow-graylog-${name}-${config.node.region}"
+  ];
 }
