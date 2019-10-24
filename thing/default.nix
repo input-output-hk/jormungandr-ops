@@ -5,7 +5,7 @@ let
   pkgs = import sources.nixpkgs {};
   inputConfig = __toFile "input.json" (__toJSON {
     stakePoolBalances = [ 1 2 3 ];
-    stakePoolCount = 4;
+    stakePoolCount = 1500;
   });
 in lib.fix (self: {
   jcli = jlib.pkgs.jormungandr-cli;
