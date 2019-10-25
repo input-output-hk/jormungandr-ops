@@ -27,6 +27,38 @@ newtype SignedCert a = SignedCert { unSignedCert :: T.Text } deriving Show
 newtype PoolId = PoolId { unPoolId :: T.Text } deriving Show
 newtype Certificate a = Certificate { unCert :: T.Text} deriving Show
 
+data Genesis = Genesis
+  { blockchainConfiguration :: BlockchainConfig
+  , initial :: [Value]
+  } deriving Generic
+
+data BlockchainConfig = BlockchainConfig
+  { bftSlotsRatio :: Int
+  , block0Consensus :: T.Text --  = "genesis_praos";
+  , block0Date :: Int
+  , consensusGenesisPraosActiveSlotCoeff :: Float
+  , consensusLeaderIds :: [PublicKey]
+  , discrimination :: T.Text -- "test";
+  , epoch_stability_depth :: Int
+  , kesUpdateSpeed :: Int
+  , linearFees :: LinearFees
+  , maxNumberOfTransactionsPerBlock :: Int
+  , slotDuration :: Int
+  , slotsPerEpoch :: Int
+  } deriving (Show, Generic)
+
+instance FromJSON BlockchainConfig where
+  parseJSON = genericParseJSON customOptions
+
+instance ToJSON BlockchainConfig where
+  toJSON = genericToJSON customOptions
+
+data LinearFees = LinearFees
+  { certificate :: Int
+  , coefficient :: Int
+  , constant :: Int
+  } deriving (Show, Generic)
+
 data StakePool = StakePool
   { leaderSecret :: SecretKey
   , leaderPublic :: PublicKey
@@ -49,19 +81,36 @@ data StakePoolSecret = StakePoolSecret
 data InputConfig = InputConfig
   { stakePoolBalances :: [Integer]
   , stakePoolCount :: Int
+  , inputBlockchainConfig :: BlockchainConfig
   } deriving (Show, Generic)
 
+customOptions = defaultOptions { fieldLabelModifier = camelTo2 '_' }
 instance FromJSON InputConfig where
   parseJSON = genericParseJSON defaultOptions
 
 instance ToJSON StakePoolSecret where
-  toJSON = genericToJSON (defaultOptions { fieldLabelModifier = camelTo2 '_' })
+  toJSON = genericToJSON customOptions
 
 instance ToJSON SecretKey where
   toJSON (SecretKey key) = String key
 
+instance FromJSON PublicKey where
+  parseJSON (String str) = pure $ PublicKey str
+
+instance ToJSON PublicKey where
+  toJSON (PublicKey pk) = String pk
+
 instance ToJSON PoolId where
   toJSON (PoolId poolid) = String poolid
+
+instance ToJSON Genesis where
+  toJSON = genericToJSON customOptions
+
+instance ToJSON LinearFees where
+  toJSON = genericToJSON customOptions
+
+instance FromJSON LinearFees where
+  parseJSON = genericParseJSON customOptions
 
 main :: IO ()
 main = do
@@ -78,6 +127,10 @@ main = do
     doEverything :: InputConfig -> IO ()
     doEverything cfg = do
       stakePools <- generateStakePools (stakePoolCount cfg)
+      voter1 <- generateSecret NormalKey
+      voter2 <- generateSecret NormalKey
+      voter1pub <- secretToPublic voter1
+      voter2pub <- secretToPublic voter2
       let
         list2 = zip stakePools (stakePoolBalances cfg)
         certEntrie :: StakePool -> Value
@@ -88,7 +141,11 @@ main = do
         generateFund (StakePool{leaderAddress}, balance) = Object $ HM.fromList [("address", String $ unAddress leaderAddress), ("value", Number $ fromInteger balance)]
         funds = map generateFund list2
         fund = Object $ HM.fromList [("fund", Array $ V.fromList funds)]
-        initial = certStakePoolEntries <> certDelegationEntries <> [ fund ]
+        initial = [ fund ] <> certStakePoolEntries <> certDelegationEntries
+        modifiedblockconfig = (inputBlockchainConfig cfg) {
+          consensusLeaderIds = [ voter1pub, voter2pub ]
+        }
+        genesisYaml = Genesis modifiedblockconfig initial
         writeSecrets :: (StakePool, Int) -> IO ()
         writeSecrets (StakePool{leaderPublic, leaderSecret, kesSecret, vrfSecret, stakePoolId, signedCertificate, signedDelegationCert}, index) = do
           let
@@ -99,7 +156,9 @@ main = do
           writeText ("secret_pool_"%d%".yaml") (T.decodeUtf8 $ LBS.toStrict $ encode $ Object $ HM.fromList [("genesis", toJSON secrets)])
           writeText ("secret_pool_"%d%".signcert") (unSignedCert signedCertificate)
           writeText ("leader_"%d%"_delegation.signcert") (unSignedCert signedDelegationCert)
-      encodeFile "genesis.initial.yaml" initial
+      encodeFile "genesis.yaml" genesisYaml
+      writeFile "voter1.sk" (T.unpack $ unSecret voter1)
+      writeFile "voter2.sk" (T.unpack $ unSecret voter2)
       mapM_ writeSecrets (zip stakePools (range (1, stakePoolCount cfg)))
       pure ()
   go args
@@ -134,7 +193,7 @@ secretToPublic (SecretKey sec) = do
 
 publicToAddress :: PublicKey -> IO Address
 publicToAddress (PublicKey pub) = do
-  let cmd = format ("jcli address account "%s) pub
+  let cmd = format ("jcli address account --testing "%s) pub
   Address . lineToText <$> single (inshell cmd empty)
 
 generateStakePool :: IO StakePool
