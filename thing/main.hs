@@ -14,6 +14,7 @@ import GHC.Generics
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Vector as V
 import qualified Data.ByteString.Lazy as LBS
+import Data.List.Split
 
 data Flag1 = NormalKey | ExtendedKey | VRFKey | KESKey
 data DelegationCert
@@ -139,9 +140,11 @@ main = do
         certStakePoolEntries = map certEntrie stakePools
         certDelegationEntries = map certDelegationEntry stakePools
         generateFund (StakePool{leaderAddress}, balance) = Object $ HM.fromList [("address", String $ unAddress leaderAddress), ("value", Number $ fromInteger balance)]
-        funds = map generateFund list2
-        fund = Object $ HM.fromList [("fund", Array $ V.fromList funds)]
-        initial = [ fund ] <> certStakePoolEntries <> certDelegationEntries
+        allFunds = map generateFund list2
+        chunkedFunds = chunksOf 255 allFunds
+        mkFund chunk = Object $ HM.fromList [("fund", Array $ V.fromList chunk)]
+        fund = map mkFund chunkedFunds
+        initial = fund <> certStakePoolEntries <> certDelegationEntries
         modifiedblockconfig = (inputBlockchainConfig cfg) {
           consensusLeaderIds = [ voter1pub, voter2pub ]
         }

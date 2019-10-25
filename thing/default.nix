@@ -8,7 +8,7 @@ let
     stakePoolBalances =
       (__genList (_: ada 1000000) 50) ++
       (__genList (_: ada 35000) 1450);
-    stakePoolCount = 2;
+    stakePoolCount = 1500;
     #stakePoolCount = 10;
     inputBlockchainConfig = blockchainConfig;
   });
@@ -33,7 +33,8 @@ let
   };
 in lib.fix (self: {
   jcli = jlib.pkgs.jormungandr-cli;
-  ghc = pkgs.haskellPackages.ghcWithPackages (ps: with ps; [ aeson turtle ]);
+  jormungandr = jlib.pkgs.jormungandr;
+  ghc = pkgs.haskellPackages.ghcWithPackages (ps: with ps; [ aeson turtle split ]);
   thing = pkgs.runCommand "thing" { buildInputs = [ self.ghc self.jcli pkgs.haskellPackages.ghcid ]; src = ./.; inherit inputConfig; } ''
     unpackPhase
     cd $sourceRoot
@@ -46,5 +47,15 @@ in lib.fix (self: {
     ${self.thing}/bin/thing ${inputConfig}
     jcli --version
     jcli genesis encode < genesis.yaml > block-0.bin
+  '';
+  tester = pkgs.writeShellScript "helper" ''
+    set -e
+    export PATH=${lib.makeBinPath [ self.jcli self.jormungandr]}:$PATH
+    mkdir -p /tmp/testrun
+    cd /tmp/testrun
+    ${self.thing}/bin/thing ${inputConfig}
+    jcli --version
+    jcli genesis encode < genesis.yaml > block-0.bin
+    jormungandr --genesis-block block-0.bin
   '';
 })
