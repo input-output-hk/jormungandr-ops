@@ -1,15 +1,14 @@
 let
+  ada = n: n * 1000000; # lovelace
+in { stakePoolCount ? 10, stakePoolBalances ? __genList (_: ada 1000000) stakePoolCount }:
+
+let
   sources = import ../nix/sources.nix;
   jlib = import "${sources.jormungandr-nix}/lib.nix";
   inherit (jlib) lib;
   pkgs = import sources.nixpkgs {};
-  ada = n: n * 1000000; # lovelace
   inputConfig = __toFile "input.json" (__toJSON {
-    stakePoolBalances =
-      (__genList (_: ada 1000000) 50) ++
-      (__genList (_: ada 35000) 1450);
-    stakePoolCount = 1500;
-    #stakePoolCount = 10;
+    inherit stakePoolBalances stakePoolCount;
     inputBlockchainConfig = blockchainConfig;
   });
 
@@ -35,16 +34,15 @@ in lib.fix (self: {
   jcli = jlib.pkgs.jormungandr-cli;
   jormungandr = jlib.pkgs.jormungandr;
   ghc = pkgs.haskellPackages.ghcWithPackages (ps: with ps; [ aeson turtle split ]);
-  thing = pkgs.runCommand "thing" { buildInputs = [ self.ghc self.jcli pkgs.haskellPackages.ghcid ]; src = ./.; inherit inputConfig; } ''
-    unpackPhase
-    cd $sourceRoot
+  genesis-generator = pkgs.runCommand "genesis-generator" { buildInputs = [ self.ghc self.jcli pkgs.haskellPackages.ghcid ]; inherit inputConfig; } ''
+    cp ${./main.hs} main.hs
     mkdir -pv $out/bin/
-    ghc ./main.hs -o $out/bin/thing
+    ghc ./main.hs -o $out/bin/genesis-generator
   '';
   helper = pkgs.writeShellScript "helper" ''
     set -e
     export PATH=${lib.makeBinPath [ self.jcli ]}:$PATH
-    ${self.thing}/bin/thing ${inputConfig}
+    ${self.genesis-generator}/bin/genesis-generator ${inputConfig}
     jcli --version
     jcli genesis encode < genesis.yaml > block-0.bin
   '';
@@ -53,7 +51,7 @@ in lib.fix (self: {
     export PATH=${lib.makeBinPath [ self.jcli self.jormungandr]}:$PATH
     mkdir -p /tmp/testrun
     cd /tmp/testrun
-    ${self.thing}/bin/thing ${inputConfig}
+    ${self.genesis-generator}/bin/genesis-generator ${inputConfig}
     jcli --version
     jcli genesis encode < genesis.yaml > block-0.bin
     jormungandr --genesis-block block-0.bin
