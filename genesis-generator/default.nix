@@ -46,9 +46,9 @@ in lib.fix (self: {
     jcli --version
     jcli genesis encode < genesis.yaml > block-0.bin
   '';
-  tester = pkgs.writeShellScript "helper" ''
+  tester = pkgs.writeShellScript "tester" ''
     set -e
-    export PATH=${lib.makeBinPath [ self.jcli self.jormungandr]}:$PATH
+    export PATH=${lib.makeBinPath [ self.jcli self.jormungandr ]}:$PATH
     mkdir -p /tmp/testrun
     cd /tmp/testrun
     ${self.genesis-generator}/bin/genesis-generator ${inputConfig}
