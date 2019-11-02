@@ -12,20 +12,15 @@ let
     let jcfg = node.config.services.jormungandr;
     in if nodeName != name && (jcfg.enable or false)
     && (__length jcfg.secrets-paths == 0) then
-      let
-        publicKeyCmd =
-          pkgs.runCommand "publicKey" { buildInputs = [ jormungandr-cli ]; } ''
-            echo ${jcfg.privateId} | jcli key to-public > $out
-          '';
-      in {
+      {
         address = jcfg.publicAddress;
-        id = lib.fileContents publicKeyCmd;
+        id = publicIds.${nodeName};
       }
     else
       null;
   trustedPeers = compact (attrValues (mapAttrs peerAddress nodes));
 
-  privateIds = __fromJSON (__readFile (../secrets/jormungandr-private-ids.json));
+  publicIds = __fromJSON (__readFile (../secrets/jormungandr-public-ids.json));
 in {
   imports = [
     (sources.jormungandr-nix + "/nixos")
@@ -57,7 +52,7 @@ in {
     };
     inherit trustedPeers;
     maxConnections = 11000;
-    privateId = privateIds."${name}" or (abort "run ./scripts/update-jormungandr-private-ids.rb");
+    publicId = publicIds."${name}" or (abort "run ./scripts/update-jormungandr-public-ids.rb");
   };
   systemd.services.jormungandr.serviceConfig.MemoryMax = "14G";
 
