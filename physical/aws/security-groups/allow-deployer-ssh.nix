@@ -1,4 +1,7 @@
-{ region, accessKeyId, ... }: {
+{ region, accessKeyId, ... }:
+let
+  inherit (import ../../../globals.nix) deployerIp;
+in {
   "allow-deployer-ssh-${region}" = {
     inherit region accessKeyId;
     _file = ./allow-deployer-ssh.nix;
@@ -7,7 +10,7 @@
       protocol = "tcp"; # TCP
       fromPort = 22;
       toPort = 22;
-      sourceIp = "0.0.0.0/0"; # TODO: fixme
+      sourceIp = "${deployerIp}/32";
     }];
   };
 }

@@ -24,9 +24,11 @@ waitForSync() {
   node=$1
 
   height=$(heightOf "$node")
-  stake="stake-apn1"
+  stake="stake-a-1"
+  #stake="stake-apn1"
   if [[ $node = "$stake" ]]; then
-    stake="stake-euc1"
+    stake="stake-a-2"
+    #stake="stake-euc1"
   fi
   stakeHeight=$(heightOf $stake)
 
@@ -56,7 +58,7 @@ deployJormungandr() {
   if nixops ssh "$node" -- "ls /var/lib/jormungandr" > /dev/null; then
     nixops ssh "$node" -- tar -OcJ -C /var/lib/jormungandr . > "$dir/$node.tar.xz"
   fi
-  nixops ssh "$node" -- rm -rf /var/lib/jormungandr
+  #nixops ssh "$node" -- rm -rf /var/lib/jormungandr
   nixops deploy --include "$node"
 }
 

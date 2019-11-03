@@ -4,9 +4,9 @@ set -euxo pipefail
 
 # Credential setup
 
-if [ ! -f ./scripts/gen-graylog-creds.nix ]; then
-  nix-shell ./scripts/gen-graylog-creds.nix
-fi
+#if [ ! -f ./scripts/gen-graylog-creds.nix ]; then
+#  nix-shell ./scripts/gen-graylog-creds.nix
+#fi
 
 # NixOps setup
 

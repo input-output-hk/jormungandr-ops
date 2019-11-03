@@ -17,7 +17,7 @@ in {
     elasticIPv4 = resources.elasticIPs."${name}-ip" or "";
 
     securityGroups = [
-      resources.ec2SecurityGroups."allow-ssh-${region}"
+      resources.ec2SecurityGroups."allow-deployer-ssh-${region}"
       resources.ec2SecurityGroups."allow-monitoring-collection-${region}"
     ];
   };

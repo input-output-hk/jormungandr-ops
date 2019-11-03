@@ -7,7 +7,8 @@ in {
 
   node.fqdn = "${name}.${domain}";
 
-  deployment.keys."faucet.sk" = { keyFile = ../static/secrets/stake_1_key.sk; };
+  deployment.keys."faucet.sk" = { keyFile = ../static/leader_1_key.sk; };
+  # deployment.keys."faucet.sk" = { keyFile = ../static/secrets/stake_1_key.sk; };
 
   deployment.ec2.securityGroups = [
     resources.ec2SecurityGroups."allow-public-www-https-${config.node.region}"
@@ -15,7 +16,7 @@ in {
 
   services.jormungandr-faucet = {
     enable = true;
-    lovelacesToGive = 10000000000;
+    lovelacesToGive = 1000000000000;
     jormungandrApi =
       "http://${config.services.jormungandr.rest.listenAddress}/api/v0";
     secondsBetweenRequests = 30;
@@ -47,6 +48,9 @@ in {
       map $http_origin $origin_allowed {
         default 0;
         https://webdevc.iohk.io 1;
+        http://webdevc.iohk.io 1;
+        https://webdevr.iohk.io 1;
+        http://webdevr.iohk.io 1;
         https://testnet.iohkdev.io 1;
         http://127.0.0.1:4000 1;
       }
