@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#!nix-shell -i ruby -p ruby
+#!nix-shell -i ruby -p ruby openssl
 
 require 'json'
 require 'open3'
@@ -29,7 +29,7 @@ parse = ->(_, so, se, _){
   machines.sort.each do |name|
     next if keys.key?(name)
 
-    key = ``.strip
+    key = `openssl rand -hex 24`.strip
     warn "new key: %-#{longest}s -> %s" % [name, key]
     keys[name] = key
   end

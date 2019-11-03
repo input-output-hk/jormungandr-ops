@@ -46,7 +46,7 @@ let
       inherit name;
       value = recursiveUpdate {
         deployment.keys."secret_pool.yaml" = {
-          keyFile = ../. + "/static/secrets/${file}";
+          keyFile = ../. + "/static/${file}";
           user = "jormungandr";
         };
       } value;
@@ -54,7 +54,7 @@ let
 
   allStakeKeys = __attrNames (filterAttrs
     (fileName: _: (__match "^secret_pool_[0-9]+.yaml$" fileName) != null)
-    (__readDir ../static/secrets));
+    (__readDir ../static));
 
   nextStakeKey = stakeKeys:
     if __length stakeKeys > 0 then

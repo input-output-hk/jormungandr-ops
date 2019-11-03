@@ -28,7 +28,7 @@ let
     };
     max_number_of_transactions_per_block = 255;
     slot_duration = 2;
-    slots_per_epoch = 900;
+    slots_per_epoch = 7200;
   };
 in lib.fix (self: {
   jcli = jlib.pkgs.jormungandr-cli;
