@@ -7,13 +7,13 @@ usage () {
   exit 2
 }
 
-force=yes
+force=no
 
 while getopts ":-:" optchar; do
   case "${optchar}" in
     -)
       case "${OPTARG}" in
-        force) force=no ;;
+        force) force=yes ;;
         *) usage ;;
       esac ;;
     *) usage ;;
@@ -27,8 +27,6 @@ else
 fi
 
 echo "deploying to: ${nodes[*]}"
-
-exit 0
 
 IFS=" " read -r -a stakes <<< "$(nix eval --raw '((import ./scripts/nodes.nix).stakeStrings)')"
 length=${#nodes[@]}
