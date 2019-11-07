@@ -9,7 +9,8 @@
         "sha256": "068zqi6l4m2ikysbq2rp202ldxhkb1r7nrhv37vjrp932d7dxaw4",
         "type": "tarball",
         "url": "https://github.com/input-output-hk/iohk-nix/archive/e893fd5cebbb6f910170c2e51effe4ee9eed2886.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
+        "version": "5f67c8d"
     },
     "iohk-ops": {
         "branch": "master",
@@ -45,7 +46,8 @@
         "sha256": "1bycjhcyach0b4s6pg5a3jyrismhxa3jnin3zq023pa49yfqb3gq",
         "type": "tarball",
         "url": "https://github.com/input-output-hk/jormungandr-nix/archive/23329aa93d6a926050479c37fa00133b60839c67.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
+        "version": "86fbb1e"
     },
     "niv": {
         "branch": "master",

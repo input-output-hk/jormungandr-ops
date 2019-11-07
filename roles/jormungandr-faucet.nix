@@ -8,7 +8,6 @@ in {
   node.fqdn = "${name}.${domain}";
 
   deployment.keys."faucet.sk" = { keyFile = ../static/leader_1_key.sk; };
-  # deployment.keys."faucet.sk" = { keyFile = ../static/secrets/stake_1_key.sk; };
 
   deployment.ec2.securityGroups = [
     resources.ec2SecurityGroups."allow-public-www-https-${config.node.region}"
