@@ -13,7 +13,7 @@ while getopts ":-:" optchar; do
   case "${optchar}" in
     -)
       case "${OPTARG}" in
-        force) force=yes ;;
+        force) force=yes; shift ;;
         *) usage ;;
       esac ;;
     *) usage ;;
@@ -73,10 +73,12 @@ deployJormungandr() {
   sleep 5
 
   if nixops ssh "$node" -- "ls /var/lib/jormungandr" > /dev/null; then
+    echo "backing up $node db to $dir/$node.tar.xz"
     nixops ssh "$node" -- tar -OcJ -C /var/lib/jormungandr . > "$dir/$node.tar.xz"
   fi
 
   if [[ $force = "yes" ]]; then
+    echo "wiping state on $node"
     nixops ssh "$node" -- rm -rf /var/lib/jormungandr
   fi
 
