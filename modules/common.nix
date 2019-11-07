@@ -46,8 +46,7 @@ in {
       then "monitoring-ip:5044"
       else "monitoring:5044";
 
-    nginx.mapHashBucketSize =
-      if config.deployment.targetEnv == "libvirtd" then 128 else null;
+    nginx.mapHashBucketSize = 128;
 
     openssh = {
       passwordAuthentication = false;

@@ -83,6 +83,7 @@ data InputConfig = InputConfig
   { stakePoolBalances :: [Integer]
   , stakePoolCount :: Int
   , inputBlockchainConfig :: BlockchainConfig
+  , utxoSnapshot :: [Value]
   } deriving (Show, Generic)
 
 customOptions = defaultOptions { fieldLabelModifier = camelTo2 '_' }
@@ -139,12 +140,17 @@ main = do
         certDelegationEntry StakePool{signedDelegationCert} = Object $ HM.fromList [("cert", String $ unSignedCert signedDelegationCert)]
         certStakePoolEntries = map certEntrie stakePools
         certDelegationEntries = map certDelegationEntry (take (length $ stakePoolBalances cfg) stakePools)
+        generateFund :: (StakePool, Integer) -> Value
         generateFund (StakePool{leaderAddress}, balance) = Object $ HM.fromList [("address", String $ unAddress leaderAddress), ("value", Number $ fromInteger balance)]
+        allFunds :: [Value]
         allFunds = map generateFund list2
         chunkedFunds = chunksOf 255 allFunds
+        utxoChunks = chunksOf 254 (utxoSnapshot cfg)
+        mkLegacyFund chunk = Object $ HM.fromList [("legacy_fund", Array $ V.fromList chunk)]
         mkFund chunk = Object $ HM.fromList [("fund", Array $ V.fromList chunk)]
         fund = map mkFund chunkedFunds
-        initial = fund <> certStakePoolEntries <> certDelegationEntries
+        legacy_fund = map mkLegacyFund utxoChunks
+        initial = fund <> legacy_fund <> certStakePoolEntries <> certDelegationEntries
         modifiedblockconfig = (inputBlockchainConfig cfg) {
           consensusLeaderIds = [ voter1pub, voter2pub ]
         }
@@ -229,7 +235,7 @@ signCertificate certreg (SecretKey secret) = do
       leaderSecretPath <- mktempfile "/tmp/" "secret.???"
       liftIO $ writeFile (encodeString leaderSecretPath) (T.unpack secret)
       let
-        cmd = format ("jcli certificate sign "%fp) leaderSecretPath
+        cmd = format ("jcli certificate sign -k "%fp) leaderSecretPath
       SignedCert . lineToText <$> single (inshell cmd (toLines $ select [ unCert certreg ]))
   with go (\result -> pure result)
 

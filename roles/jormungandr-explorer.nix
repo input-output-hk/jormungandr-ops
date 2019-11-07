@@ -18,6 +18,26 @@ in {
     inherit enableSSL;
     jormungandrApi = "${protocol}://${fqdn}/explorer/graphql";
   };
+  services.nginx = {
+    enable = true;
+    recommendedTlsSettings = true;
+    recommendedOptimisation = true;
+    recommendedGzipSettings = true;
+    recommendedProxySettings = true;
+    serverTokens = false;
 
-  services.jormungandr.rest.cors.allowedOrigins = [ "${protocol}://${fqdn}" ];
+    commonHttpConfig = ''
+      map $http_origin $origin_allowed {
+        default 0;
+        https://shelley-testnet-explorer-qa.netlify.com 1;
+      }
+
+      map $origin_allowed $origin {
+        default "";
+        1 $http_origin;
+      }
+    '';
+  };
+
+  #services.jormungandr.rest.cors.allowedOrigins = [ "https://shelley-testnet-explorer-qa.netlify.com" ];
 }

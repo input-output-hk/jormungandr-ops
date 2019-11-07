@@ -2,6 +2,24 @@
 
 set -e
 
+usage () {
+  echo "usage: $0 [--force] [node1 node2 ...]" >&2
+  exit 2
+}
+
+force=yes
+
+while getopts ":-:" optchar; do
+  case "${optchar}" in
+    -)
+      case "${OPTARG}" in
+        force) force=no ;;
+        *) usage ;;
+      esac ;;
+    *) usage ;;
+  esac
+done
+
 if [[ -z "$*" ]]; then
   IFS=" " read -r -a nodes <<< "$(nix eval --raw '((import ./scripts/nodes.nix).string)')"
 else
@@ -10,6 +28,9 @@ fi
 
 echo "deploying to: ${nodes[*]}"
 
+exit 0
+
+IFS=" " read -r -a stakes <<< "$(nix eval --raw '((import ./scripts/nodes.nix).stakeStrings)')"
 length=${#nodes[@]}
 current=0
 time="$(date +%Y-%m-%d-%H-%M)"
@@ -24,11 +45,9 @@ waitForSync() {
   node=$1
 
   height=$(heightOf "$node")
-  stake="stake-a-1"
-  #stake="stake-apn1"
+  stake="${stakes[0]}"
   if [[ $node = "$stake" ]]; then
-    stake="stake-a-2"
-    #stake="stake-euc1"
+    stake="${stakes[1]}"
   fi
   stakeHeight=$(heightOf $stake)
 
@@ -58,7 +77,11 @@ deployJormungandr() {
   if nixops ssh "$node" -- "ls /var/lib/jormungandr" > /dev/null; then
     nixops ssh "$node" -- tar -OcJ -C /var/lib/jormungandr . > "$dir/$node.tar.xz"
   fi
-  #nixops ssh "$node" -- rm -rf /var/lib/jormungandr
+
+  if [[ $force = "yes" ]]; then
+    nixops ssh "$node" -- rm -rf /var/lib/jormungandr
+  fi
+
   nixops deploy --include "$node"
 }
 
