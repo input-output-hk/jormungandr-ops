@@ -1,15 +1,20 @@
 let
   ada = n: n * 1000000; # lovelace
-in { stakePoolCount ? 10, stakePoolBalances ? __genList (_: ada 1000000) stakePoolCount }:
+in {
+  stakePoolCount ? 7
+, stakePoolBalances ? __genList (_: ada 10000000) stakePoolCount
+}:
 
 let
   sources = import ../nix/sources.nix;
-  jlib = import "${sources.jormungandr-nix}/lib.nix";
-  inherit (jlib) lib;
+  commonLib = import sources.iohk-nix {};
+  inherit (commonLib.pkgs) lib;
   pkgs = import sources.nixpkgs {};
   inputConfig = __toFile "input.json" (__toJSON {
     inherit stakePoolBalances stakePoolCount;
     inputBlockchainConfig = blockchainConfig;
+    #utxoSnapshot = (builtins.fromJSON (builtins.readFile ~/utxo-accept-3191080.json)).fund;
+    utxoSnapshot = [];
   });
 
   blockchainConfig = {
@@ -31,8 +36,8 @@ let
     slots_per_epoch = 7200;
   };
 in lib.fix (self: {
-  jcli = jlib.pkgs.jormungandr-cli;
-  jormungandr = jlib.pkgs.jormungandr;
+  jcli = commonLib.rust-packages.pkgs.jormungandr-cli;
+  jormungandr = commonLib.rust-packages.pkgs.jormungandr;
   ghc = pkgs.haskellPackages.ghcWithPackages (ps: with ps; [ aeson turtle split ]);
   genesis-generator = pkgs.runCommand "genesis-generator" { buildInputs = [ self.ghc self.jcli pkgs.haskellPackages.ghcid ]; inherit inputConfig; } ''
     cp ${./main.hs} main.hs

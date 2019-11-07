@@ -54,7 +54,7 @@ in {
     maxConnections = 11000;
     publicId = publicIds."${name}" or (abort "run ./scripts/update-jormungandr-public-ids.rb");
   };
-  systemd.services.jormungandr.serviceConfig.MemoryMax = "14G";
+  systemd.services.jormungandr.serviceConfig.MemoryMax = "3G";
 
 
   networking.firewall.allowedTCPPorts = [ 3000 ];

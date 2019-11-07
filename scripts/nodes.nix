@@ -12,11 +12,11 @@ let
     "network"
   ];
 
+in rec {
   machines = removeAttrs deployment ignore;
-in {
-  inherit machines;
   stakes = filterAttrs (name: node: node.node.isStake) machines;
   relays = filterAttrs (name: node: node.node.isRelay) machines;
   string = toString (attrNames machines);
+  stakeStrings = toString (attrNames stakes);
   json = toJSON (attrNames machines);
 }
