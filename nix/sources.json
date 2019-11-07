@@ -36,15 +36,15 @@
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "jormungandr-nix": {
-        "branch": "api-allow-nginx",
+        "branch": "master",
         "description": "jormungandr nix scripts",
         "homepage": null,
         "owner": "input-output-hk",
         "repo": "jormungandr-nix",
-        "rev": "4d15dabf4f9f1d1f9ec44e4991cfa36d3e86ed10",
-        "sha256": "12b4arlw299l103jm1mhd57hc4fkv04bwln3vq2w3n9apdjakjj2",
+        "rev": "23329aa93d6a926050479c37fa00133b60839c67",
+        "sha256": "1bycjhcyach0b4s6pg5a3jyrismhxa3jnin3zq023pa49yfqb3gq",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/jormungandr-nix/archive/4d15dabf4f9f1d1f9ec44e4991cfa36d3e86ed10.tar.gz",
+        "url": "https://github.com/input-output-hk/jormungandr-nix/archive/23329aa93d6a926050479c37fa00133b60839c67.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "niv": {
