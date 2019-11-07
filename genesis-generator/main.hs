@@ -83,12 +83,22 @@ data InputConfig = InputConfig
   { stakePoolBalances :: [Integer]
   , stakePoolCount :: Int
   , inputBlockchainConfig :: BlockchainConfig
-  , utxoSnapshot :: [Value]
+  , extraLegacyFunds :: [Value]
+  , extraFunds :: [Value]
+  , extraDelegationCerts :: [ SignedCert DelegationCert ]
+  , extraStakePools :: [ SignedCert StakePoolCert ]
   } deriving (Show, Generic)
 
 customOptions = defaultOptions { fieldLabelModifier = camelTo2 '_' }
 instance FromJSON InputConfig where
-  parseJSON = genericParseJSON defaultOptions
+  parseJSON = withObject "InputConfig" $ \o -> InputConfig
+    <$> o .: "stakePoolBalances"
+    <*> o .: "stakePoolCount"
+    <*> o .: "inputBlockchainConfig"
+    <*> o .: "extraLegacyFunds"
+    <*> o .: "extraFunds"
+    <*> ((map SignedCert) <$> o .: "extraDelegationCerts")
+    <*> ((map SignedCert) <$> o .: "extraStakePools")
 
 instance ToJSON StakePoolSecret where
   toJSON = genericToJSON customOptions
@@ -135,22 +145,30 @@ main = do
       voter2pub <- secretToPublic voter2
       let
         list2 = zip stakePools (stakePoolBalances cfg)
-        certEntrie :: StakePool -> Value
-        certEntrie StakePool{signedCertificate} = Object $ HM.fromList [("cert", String $ unSignedCert signedCertificate)]
+        certEntry :: StakePool -> Value
+        certEntry StakePool{signedCertificate} = Object $ HM.fromList [("cert", String $ unSignedCert signedCertificate)]
+        certDelegationEntry :: StakePool -> Value
         certDelegationEntry StakePool{signedDelegationCert} = Object $ HM.fromList [("cert", String $ unSignedCert signedDelegationCert)]
-        certStakePoolEntries = map certEntrie stakePools
+        wrapExtraCert :: SignedCert a -> Value
+        wrapExtraCert SignedCert{unSignedCert} = Object $ HM.fromList [("cert", String $ unSignedCert )]
+        certStakePoolEntries :: [Value]
+        certStakePoolEntries = map certEntry stakePools
+        -- returns a list of [{"cert":"..."}]
         certDelegationEntries = map certDelegationEntry (take (length $ stakePoolBalances cfg) stakePools)
+        extraStakePoolCerts = map wrapExtraCert (extraStakePools cfg)
+        -- also returns a list of [{"cert":"..."}] for the extra delegations
+        extraDelegationEntries = map wrapExtraCert (extraDelegationCerts cfg)
         generateFund :: (StakePool, Integer) -> Value
         generateFund (StakePool{leaderAddress}, balance) = Object $ HM.fromList [("address", String $ unAddress leaderAddress), ("value", Number $ fromInteger balance)]
         allFunds :: [Value]
         allFunds = map generateFund list2
-        chunkedFunds = chunksOf 255 allFunds
-        utxoChunks = chunksOf 254 (utxoSnapshot cfg)
+        chunkedFunds = chunksOf 255 (allFunds <> extraFunds cfg)
+        legacyChunks = chunksOf 254 (extraLegacyFunds cfg)
         mkLegacyFund chunk = Object $ HM.fromList [("legacy_fund", Array $ V.fromList chunk)]
         mkFund chunk = Object $ HM.fromList [("fund", Array $ V.fromList chunk)]
         fund = map mkFund chunkedFunds
-        legacy_fund = map mkLegacyFund utxoChunks
-        initial = fund <> legacy_fund <> certStakePoolEntries <> certDelegationEntries
+        legacy_fund = map mkLegacyFund legacyChunks
+        initial = fund <> legacy_fund <> certStakePoolEntries <> extraStakePoolCerts <> certDelegationEntries <> extraDelegationEntries
         modifiedblockconfig = (inputBlockchainConfig cfg) {
           consensusLeaderIds = [ voter1pub, voter2pub ]
         }
