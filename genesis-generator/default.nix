@@ -3,6 +3,7 @@ let
 in {
   stakePoolCount ? 7
 , stakePoolBalances ? __genList (_: ada 10000000) stakePoolCount
+, inputParams ? {}
 }:
 
 let
@@ -10,12 +11,15 @@ let
   commonLib = import sources.iohk-nix {};
   inherit (commonLib.pkgs) lib;
   pkgs = import sources.nixpkgs {};
-  inputConfig = __toFile "input.json" (__toJSON {
+  inputConfig = __toFile "input.json" (__toJSON ({
     inherit stakePoolBalances stakePoolCount;
     inputBlockchainConfig = blockchainConfig;
-    #utxoSnapshot = (builtins.fromJSON (builtins.readFile ~/utxo-accept-3191080.json)).fund;
-    utxoSnapshot = [];
-  });
+    #extraLegacyFunds = (builtins.fromJSON (builtins.readFile ~/utxo-accept-3191080.json)).fund;
+    extraLegacyFunds = [];
+    extraFunds = [];
+    extraDelegationCerts = [];
+    extraStakePools = [];
+  } // inputParams));
 
   blockchainConfig = {
     bft_slots_ratio = 0;
@@ -39,7 +43,10 @@ in lib.fix (self: {
   jcli = commonLib.rust-packages.pkgs.jormungandr-cli;
   jormungandr = commonLib.rust-packages.pkgs.jormungandr;
   ghc = pkgs.haskellPackages.ghcWithPackages (ps: with ps; [ aeson turtle split ]);
-  genesis-generator = pkgs.runCommand "genesis-generator" { buildInputs = [ self.ghc self.jcli pkgs.haskellPackages.ghcid ]; inherit inputConfig; } ''
+  genesis-generator = pkgs.runCommand "genesis-generator" {
+    buildInputs = [ self.ghc self.jcli pkgs.haskellPackages.ghcid ];
+    preferLocalBuild = true;
+  } ''
     cp ${./main.hs} main.hs
     mkdir -pv $out/bin/
     ghc ./main.hs -o $out/bin/genesis-generator
@@ -48,6 +55,8 @@ in lib.fix (self: {
     set -e
     export PATH=${lib.makeBinPath [ self.jcli ]}:$PATH
     ${self.genesis-generator}/bin/genesis-generator ${inputConfig}
+    jq . < genesis.yaml > genesis.yaml.tmp
+    mv genesis.yaml.tmp genesis.yaml
     jcli --version
     jcli genesis encode < genesis.yaml > block-0.bin
   '';
@@ -57,6 +66,8 @@ in lib.fix (self: {
     mkdir -p /tmp/testrun
     cd /tmp/testrun
     ${self.genesis-generator}/bin/genesis-generator ${inputConfig}
+    jq . < genesis.yaml > genesis.yaml.tmp
+    mv genesis.yaml.tmp genesis.yaml
     jcli --version
     jcli genesis encode < genesis.yaml > block-0.bin
     jormungandr --genesis-block block-0.bin
