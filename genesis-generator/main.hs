@@ -5,16 +5,16 @@
 module Main (main) where
 
 import System.Environment (getArgs)
-import Turtle
+import Turtle hiding (o)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import Data.Ix
+import Data.Ix hiding (index)
 import Data.Aeson
 import GHC.Generics
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Vector as V
 import qualified Data.ByteString.Lazy as LBS
-import Data.List.Split
+import Data.List.Split hiding (chunk)
 
 data Flag1 = NormalKey | ExtendedKey | VRFKey | KESKey
 data DelegationCert
@@ -89,7 +89,9 @@ data InputConfig = InputConfig
   , extraStakePools :: [ SignedCert StakePoolCert ]
   } deriving (Show, Generic)
 
+customOptions :: Options
 customOptions = defaultOptions { fieldLabelModifier = camelTo2 '_' }
+
 instance FromJSON InputConfig where
   parseJSON = withObject "InputConfig" $ \o -> InputConfig
     <$> o .: "stakePoolBalances"
@@ -124,6 +126,28 @@ instance ToJSON LinearFees where
 instance FromJSON LinearFees where
   parseJSON = genericParseJSON customOptions
 
+-- turns a signed certificate into a json object in the form of {"cert":"..."}
+wrapCert :: SignedCert a -> Value
+wrapCert SignedCert{unSignedCert} = Object $ HM.fromList [("cert", String $ unSignedCert )]
+
+certStakePoolEntries :: [StakePool] -> [Value]
+certStakePoolEntries stakePools = map (wrapCert . signedCertificate) stakePools
+
+-- returns a list of [{"cert":"..."}] containing delegation certs for all pools with a balance
+certDelegationEntries :: InputConfig -> [StakePool] -> [Value]
+certDelegationEntries InputConfig{stakePoolBalances} stakePools = map (wrapCert . signedDelegationCert) (take (length stakePoolBalances) stakePools)
+
+extraStakePoolCerts :: InputConfig -> [Value]
+extraStakePoolCerts InputConfig{extraStakePools} = map wrapCert extraStakePools
+
+-- also returns a list of [{"cert":"..."}] for the extra delegations
+extraDelegationEntries :: InputConfig -> [Value]
+extraDelegationEntries InputConfig{extraDelegationCerts} = map wrapCert extraDelegationCerts
+
+-- given a leader address and balance, generate {"address":"...","value":1234}
+generateFund :: (StakePool, Integer) -> Value
+generateFund (StakePool{leaderAddress}, balance) = Object $ HM.fromList [("address", String $ unAddress leaderAddress), ("value", Number $ fromInteger balance)]
+
 main :: IO ()
 main = do
   args <- getArgs
@@ -132,8 +156,8 @@ main = do
     go [path] = do
       ecfg <- eitherDecodeFileStrict path
       case ecfg of
-        Left err -> do
-          print err
+        Left errMsg -> do
+          print errMsg
           undefined
         Right cfg -> doEverything cfg
     doEverything :: InputConfig -> IO ()
@@ -144,37 +168,34 @@ main = do
       voter1pub <- secretToPublic voter1
       voter2pub <- secretToPublic voter2
       let
+        -- pair the generates stake pools up with entries in stakePoolBalances
         list2 = zip stakePools (stakePoolBalances cfg)
-        certEntry :: StakePool -> Value
-        certEntry StakePool{signedCertificate} = Object $ HM.fromList [("cert", String $ unSignedCert signedCertificate)]
-        certDelegationEntry :: StakePool -> Value
-        certDelegationEntry StakePool{signedDelegationCert} = Object $ HM.fromList [("cert", String $ unSignedCert signedDelegationCert)]
-        wrapExtraCert :: SignedCert a -> Value
-        wrapExtraCert SignedCert{unSignedCert} = Object $ HM.fromList [("cert", String $ unSignedCert )]
-        certStakePoolEntries :: [Value]
-        certStakePoolEntries = map certEntry stakePools
-        -- returns a list of [{"cert":"..."}]
-        certDelegationEntries = map certDelegationEntry (take (length $ stakePoolBalances cfg) stakePools)
-        extraStakePoolCerts = map wrapExtraCert (extraStakePools cfg)
-        -- also returns a list of [{"cert":"..."}] for the extra delegations
-        extraDelegationEntries = map wrapExtraCert (extraDelegationCerts cfg)
-        generateFund :: (StakePool, Integer) -> Value
-        generateFund (StakePool{leaderAddress}, balance) = Object $ HM.fromList [("address", String $ unAddress leaderAddress), ("value", Number $ fromInteger balance)]
+        -- generate an initial fund entry for each stake pool
         allFunds :: [Value]
         allFunds = map generateFund list2
+        -- join all stake pool funding and extra funding, then split into chunks of 255
         chunkedFunds = chunksOf 255 (allFunds <> extraFunds cfg)
+        -- split all legacy funds into chunks of 254
         legacyChunks = chunksOf 254 (extraLegacyFunds cfg)
+        -- wrap a legacy fund with {"legacy_fund":[...]}
         mkLegacyFund chunk = Object $ HM.fromList [("legacy_fund", Array $ V.fromList chunk)]
+        -- wrap funds with {"fund":[...]}
         mkFund chunk = Object $ HM.fromList [("fund", Array $ V.fromList chunk)]
+        -- wrap each chunk of 255
         fund = map mkFund chunkedFunds
+        -- wrap each chunk of 254 legacy funds
         legacy_fund = map mkLegacyFund legacyChunks
-        initial = fund <> legacy_fund <> certStakePoolEntries <> extraStakePoolCerts <> certDelegationEntries <> extraDelegationEntries
+        -- all fund and legacy_fund objects
+        initial_funds = fund <> legacy_fund
+        -- all stake pool registration certs and delegation certs
+        initial_certs = certStakePoolEntries stakePools <> extraStakePoolCerts cfg <> certDelegationEntries cfg stakePools <> extraDelegationEntries cfg
+        initial = initial_funds <> initial_certs
         modifiedblockconfig = (inputBlockchainConfig cfg) {
           consensusLeaderIds = [ voter1pub, voter2pub ]
         }
         genesisYaml = Genesis modifiedblockconfig initial
         writeSecrets :: (StakePool, Int) -> IO ()
-        writeSecrets (StakePool{leaderPublic, leaderSecret, kesSecret, vrfSecret, stakePoolId, signedCertificate, signedDelegationCert}, index) = do
+        writeSecrets (StakePool{leaderSecret, kesSecret, vrfSecret, stakePoolId, signedCertificate, signedDelegationCert}, index) = do
           let
             writeText :: Format Text (Int -> Text) -> Text -> IO ()
             writeText fmt content = writeFile (T.unpack $ format fmt index) (T.unpack content)
@@ -243,7 +264,7 @@ generateStakePool = do
   pure $ StakePool{leaderSecret, leaderPublic, leaderAddress, vrfSecret, vrfPublic, kesSecret, kesPublic, signedCertificate, signedDelegationCert, stakePoolId}
 
 generateStakePools :: Int -> IO [StakePool]
-generateStakePools count = mapM (\_ -> generateStakePool) (range (1,count))
+generateStakePools poolCount = mapM (\_ -> generateStakePool) (range (1, poolCount))
 
 signCertificate :: Certificate a -> SecretKey -> IO (SignedCert a)
 signCertificate certreg (SecretKey secret) = do
