@@ -1,6 +1,7 @@
 { config, resources, name, ... }:
 let sources = import ../nix/sources.nix;
     inherit (import ../globals.nix) domain;
+    ada = lovelace: lovelace * 1000000;
 in {
   imports =
     [ (sources.jormungandr-faucet + "/nix/nixos") ./jormungandr-relay.nix ];
@@ -15,7 +16,7 @@ in {
 
   services.jormungandr-faucet = {
     enable = true;
-    lovelacesToGive = 1000000000000;
+    lovelacesToGive = ada 10000;
     jormungandrApi =
       "http://${config.services.jormungandr.rest.listenAddress}/api/v0";
     secondsBetweenRequests = 30;
@@ -61,7 +62,7 @@ in {
     '';
 
     virtualHosts = {
-      "jormungandr-faucet.${domain}" = {
+      "${name}.${domain}" = {
         forceSSL = config.deployment.targetEnv != "libvirtd";
         enableACME = config.deployment.targetEnv != "libvirtd";
 
