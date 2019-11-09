@@ -3,17 +3,14 @@ let
   sources = import ../nix/sources.nix;
 
   pkgs = import ../nix { };
-  inherit (pkgs) jormungandr-cli jormungandr;
   inherit (pkgs.packages) pp;
   inherit (builtins) filter attrValues mapAttrs;
 
   compact = l: filter (e: e != null) l;
   peerAddress = nodeName: node:
-    let jcfg = node.config.services.jormungandr;
-    in if nodeName != name && (jcfg.enable or false)
-    && (__length jcfg.secrets-paths == 0) then
+    if node.config.node.isRelay then
       {
-        address = jcfg.publicAddress;
+        address = node.config.services.jormungandr.publicAddress;
         id = publicIds.${nodeName};
       }
     else
@@ -37,8 +34,8 @@ in {
   services.jormungandr = {
     enable = true;
     withBackTraces = true;
-    package = jormungandr;
-    jcliPackage = jormungandr-cli;
+    package = pkgs.jormungandr;
+    jcliPackage = pkgs.jormungandr-cli;
     rest.cors.allowedOrigins = [ ];
     publicAddress = if config.deployment.targetEnv == "ec2" then
       "/ip4/${resources.elasticIPs."${name}-ip".address}/tcp/3000"
@@ -62,7 +59,11 @@ in {
   environment.variables.JORMUNGANDR_RESTAPI_URL =
     "http://${config.services.jormungandr.rest.listenAddress}/api";
 
-  environment.systemPackages = with pkgs; [ jormungandr-cli janalyze sendFunds ];
+  environment.systemPackages = with pkgs; [
+    config.services.jormungandr.jcliPackage
+    janalyze
+    sendFunds
+  ];
 
   services.jormungandr-monitor = {
     enable = true;

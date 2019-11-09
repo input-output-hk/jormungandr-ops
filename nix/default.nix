@@ -4,7 +4,7 @@ with {
     inherit (import sources.niv { }) niv;
     packages = self.callPackages ./packages.nix { };
     inherit ((import sources.iohk-nix { }).rust-packages.pkgs)
-      jormungandr jormungandr-cli;
+      jormungandr jormungandr-master jormungandr-cli jormungandr-cli-master;
 
     inherit ((import sources.jormungandr-nix {}).scripts) janalyze sendFunds;
 

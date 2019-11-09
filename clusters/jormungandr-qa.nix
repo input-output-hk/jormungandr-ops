@@ -17,7 +17,7 @@ let
       node.isExplorer = true;
     };
 
-    jormungandr-faucet = {
+    faucet = {
       imports = [ tiny ../roles/jormungandr-faucet.nix ];
       deployment.ec2.region = "eu-central-1";
       node.isFaucet = true;
@@ -77,6 +77,6 @@ let
     };
   };
 in {
-  network.description = "jormungandr-qa";
+  network.description = "Jormungandr QA";
   network.enableRollback = true;
 } // nodes
