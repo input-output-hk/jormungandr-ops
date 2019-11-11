@@ -9,7 +9,8 @@ let
 
   cluster = import ../clusters/jormungandr-performance.nix {
     targetEnv = "ec2";
-    tiny = ../physical/aws/t3a.medium.nix;
+    tiny = ../physical/aws/t3a.small.nix;
+    medium = ../physical/aws/t3a.medium.nix;
     large = ../physical/aws/t3.xlarge.nix;
   };
 
@@ -22,11 +23,12 @@ let
 
   securityGroupFiles = [
     ../physical/aws/security-groups/allow-all.nix
-    ../physical/aws/security-groups/allow-ssh.nix
+    ../physical/aws/security-groups/allow-deployer-ssh.nix
+    ../physical/aws/security-groups/allow-graylog.nix
+    ../physical/aws/security-groups/allow-jormungandr.nix
     ../physical/aws/security-groups/allow-monitoring-collection.nix
     ../physical/aws/security-groups/allow-public-www-https.nix
-    ../physical/aws/security-groups/allow-jormungandr.nix
-    ../physical/aws/security-groups/allow-graylog.nix
+    ../physical/aws/security-groups/allow-ssh.nix
   ];
 
   importSecurityGroup = region: file:

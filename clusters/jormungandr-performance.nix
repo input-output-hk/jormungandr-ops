@@ -1,8 +1,22 @@
-{ targetEnv, tiny, large }:
+{ targetEnv, tiny, medium, large }:
 let
   mkNodes = import ../nix/mk-nodes.nix { inherit targetEnv; };
   pkgs = import ../nix { };
   lib = pkgs.lib;
+
+  mkStakes = region: amount: {
+    inherit amount;
+    imports = [ medium ../roles/jormungandr-stake.nix ];
+    deployment.ec2.region = region;
+    node.isStake = true;
+  };
+
+  mkRelays = region: amount: {
+    inherit amount;
+    imports = [ medium ../roles/jormungandr-relay.nix ];
+    deployment.ec2.region = region;
+    node.isRelay = true;
+  };
 
   nodes = mkNodes {
     monitoring = {
@@ -12,60 +26,28 @@ let
     };
 
     explorer = {
-      imports = [ tiny ../roles/jormungandr-explorer.nix ];
+      imports = [ medium ../roles/jormungandr-explorer.nix ];
       deployment.ec2.region = "eu-central-1";
       node.isExplorer = true;
+      node.isRelay = true;
     };
 
-    jormungandr-faucet = {
-      imports = [ tiny ../roles/jormungandr-faucet.nix ];
+    faucet = {
+      imports = [ medium ../roles/jormungandr-faucet.nix ];
       deployment.ec2.region = "eu-central-1";
       node.isFaucet = true;
-    };
-
-    stake-a = {
-      amount = 13;
-      imports = [ tiny ../roles/jormungandr-stake.nix ];
-      deployment.ec2.region = "us-west-1";
-      node.isStake = true;
-    };
-
-    stake-b = {
-      amount = 13;
-      imports = [ tiny ../roles/jormungandr-stake.nix ];
-      deployment.ec2.region = "ap-northeast-1";
-      node.isStake = true;
-    };
-
-    stake-c = {
-      amount = 13;
-      imports = [ tiny ../roles/jormungandr-stake.nix ];
-      deployment.ec2.region = "eu-central-1";
-      node.isStake = true;
-    };
-
-    relay-a = {
-      amount = 2;
-      imports = [ tiny ../roles/jormungandr-relay.nix ];
-      deployment.ec2.region = "us-west-1";
       node.isRelay = true;
     };
 
-    relay-b = {
-      amount = 2;
-      imports = [ tiny ../roles/jormungandr-relay.nix ];
-      deployment.ec2.region = "ap-northeast-1";
-      node.isRelay = true;
-    };
+    stake-a = mkStakes "us-west-1" 333;
+    stake-b = mkStakes "ap-northeast-1" 333;
+    stake-c = mkStakes "eu-central-1" 334;
 
-    relay-c = {
-      amount = 2;
-      imports = [ tiny ../roles/jormungandr-relay.nix ];
-      deployment.ec2.region = "eu-central-1";
-      node.isRelay = true;
-    };
+    relay-a = mkRelays "us-west-1" 2;
+    relay-b = mkRelays "ap-northeast-1" 2;
+    relay-c = mkRelays "eu-central-1" 2;
   };
 in {
-  network.description = "jormungandr-performance";
+  network.description = "Jormungandr Performance";
   network.enableRollback = true;
 } // nodes

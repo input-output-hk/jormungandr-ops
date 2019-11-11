@@ -32,6 +32,5 @@ in {
 
   node = {
     inherit accessKeyId region;
-    fqdn = "${name}.${domain}";
   };
 }
