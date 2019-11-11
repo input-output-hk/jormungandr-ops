@@ -37,6 +37,7 @@ in {
     recommendedGzipSettings = true;
     recommendedProxySettings = true;
     serverTokens = false;
+    mapHashBucketSize = 128;
 
     commonHttpConfig = ''
       log_format x-fwd '$remote_addr - $remote_user [$time_local] '
@@ -44,6 +45,7 @@ in {
                         '"$http_referer" "$http_user_agent" "$http_x_forwarded_for"';
       access_log syslog:server=unix:/dev/log x-fwd;
       limit_req_zone $binary_remote_addr zone=faucetPerIP:100m rate=1r/s;
+      server_names_hash_bucket_size 128;
 
       map $http_origin $origin_allowed {
         default 0;
