@@ -9,7 +9,7 @@ let
 
   cluster = import ../clusters/jormungandr-testnet2.nix {
     targetEnv = "ec2";
-    tiny = ../physical/aws/t3a.xlarge.nix;
+    tiny = ../physical/aws/t3a.medium.nix;
     large = ../physical/aws/t3.xlarge.nix;
   };
 

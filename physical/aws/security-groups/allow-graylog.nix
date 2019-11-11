@@ -1,16 +1,13 @@
-{ lib, region, accessKeyId, nodes }:
-let
-  inherit (lib) foldl' recursiveUpdate mapAttrs' nameValuePair flip;
-in flip mapAttrs' nodes (name: node:
-  nameValuePair "allow-graylog-${name}-${region}" ({resources, ...}: {
+{ region, accessKeyId, ... }: {
+  "allow-graylog-${region}" = {
     inherit region accessKeyId;
     _file = ./allow-graylog.nix;
-    description = "Allow Graylog ${name} ${region}";
+    description = "Allow Graylog ${region}";
     rules = [{
       protocol = "tcp"; # all
       fromPort = 5044;
       toPort = 5044;
-      sourceIp = resources.elasticIPs."${name}-ip";
+      sourceIp = "0.0.0.0/0";
     }];
-  })
-)
+  };
+}

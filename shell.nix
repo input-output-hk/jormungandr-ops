@@ -1,4 +1,13 @@
 with { pkgs = import ./nix { }; };
 pkgs.mkShell {
-  buildInputs = with pkgs; [ niv nixops cacert sqliteInteractive zip jormungandr-cli openssl ];
+  buildInputs = with pkgs; [
+    sqliteInteractive
+    cacert
+    crystal
+    jormungandr-cli
+    niv
+    nixops
+    openssl
+    zip
+  ];
 }

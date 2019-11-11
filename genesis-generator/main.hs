@@ -173,8 +173,8 @@ main = do
         -- generate an initial fund entry for each stake pool
         allFunds :: [Value]
         allFunds = map generateFund list2
-        -- join all stake pool funding and extra funding, then split into chunks of 255
-        chunkedFunds = chunksOf 255 (allFunds <> extraFunds cfg)
+        -- join all stake pool funding and extra funding, then split into chunks of 254
+        chunkedFunds = chunksOf 254 (allFunds <> extraFunds cfg)
         -- split all legacy funds into chunks of 254
         legacyChunks = chunksOf 254 (extraLegacyFunds cfg)
         -- wrap a legacy fund with {"legacy_fund":[...]}

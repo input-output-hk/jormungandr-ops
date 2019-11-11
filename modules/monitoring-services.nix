@@ -1004,6 +1004,9 @@ in {
         };
         mongodb.enable = true;
       };
+
+      systemd.services.prometheus.serviceConfig.LimitNOFILE = "524288";
+
       systemd.services.graylog-preload = let
         graylogConfig = ./graylog/graylogConfig.json;
         password = traceValFn (x:

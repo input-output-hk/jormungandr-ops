@@ -11,6 +11,7 @@ let
   commonLib = import sources.iohk-nix {};
   inherit (commonLib.pkgs) lib;
   pkgs = import sources.nixpkgs {};
+
   inputConfig = __toFile "input.json" (__toJSON ({
     inherit stakePoolBalances stakePoolCount;
     inputBlockchainConfig = blockchainConfig;
@@ -51,6 +52,7 @@ in lib.fix (self: {
     mkdir -pv $out/bin/
     ghc ./main.hs -o $out/bin/genesis-generator
   '';
+
   helper = pkgs.writeShellScript "helper" ''
     set -e
     export PATH=${lib.makeBinPath [ self.jcli ]}:$PATH
@@ -60,6 +62,7 @@ in lib.fix (self: {
     jcli --version
     jcli genesis encode < genesis.yaml > block-0.bin
   '';
+
   tester = pkgs.writeShellScript "tester" ''
     set -e
     export PATH=${lib.makeBinPath [ self.jcli self.jormungandr ]}:$PATH
