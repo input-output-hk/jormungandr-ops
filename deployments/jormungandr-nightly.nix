@@ -22,8 +22,7 @@ let
 
   securityGroupFiles = [
     ../physical/aws/security-groups/allow-all.nix
-    ../physical/aws/security-groups/allow-ssh.nix
-    # ../physical/aws/security-groups/allow-deployer-ssh.nix
+    ../physical/aws/security-groups/allow-deployer-ssh.nix
     ../physical/aws/security-groups/allow-monitoring-collection.nix
     ../physical/aws/security-groups/allow-public-www-https.nix
     ../physical/aws/security-groups/allow-jormungandr.nix
