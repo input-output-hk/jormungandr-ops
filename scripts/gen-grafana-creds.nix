@@ -7,7 +7,7 @@ pkgs.stdenv.mkDerivation {
     defaultUser="root"                   # Default administrative user
     password="${toString password}"      # password supplied by cli arg
     passwordChar="32"                    # Default grafana password length
-    staticPath=${toString ../static}     # Absolute path to the static dir
+    staticPath=${toString ../secrets}    # Absolute path to the static dir
     user="${toString user}"              # user supplied by cli arg
 
     if [[ -e "$staticPath/$credsFilename" ]]; then

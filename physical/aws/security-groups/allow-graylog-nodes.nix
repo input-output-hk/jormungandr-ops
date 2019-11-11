@@ -2,10 +2,10 @@
 let
   inherit (lib) foldl' recursiveUpdate mapAttrs' nameValuePair flip;
 in flip mapAttrs' nodes (name: node:
-  nameValuePair "allow-graylog-${name}-${region}" ({resources, ...}: {
+  nameValuePair "allow-graylog-nodes-${region}" ({resources, ...}: {
     inherit region accessKeyId;
     _file = ./allow-graylog-nodes.nix;
-    description = "Allow Graylog ${name} ${region}";
+    description = "Allow Graylog nodes ${region}";
     rules = [{
       protocol = "tcp"; # all
       fromPort = 5044;

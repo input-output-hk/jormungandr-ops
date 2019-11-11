@@ -7,6 +7,7 @@ let
 
   pp = v: __trace (__toJSON v) v;
 
+  # defs: passed from clusters/jormungandr-$CLUSTER.nix as the node defs
   mkNodes = defs:
     listToAttrs (foldl foldNodes {
       stakeKeys = allStakeKeys;
