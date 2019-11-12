@@ -13,7 +13,7 @@
 
 ```
 nixops create -d $NIXOPS_DEPLOYMENT -I nixpkgs=./nix deployments/${NIXOPS_DEPLOYMENT}.nix
-nixops --arg globals 'import ../globals.nix'
+nixops set-args --arg globals 'import ./globals.nix'
 ```
 
 * Deploy as needed, utilizing scripts from the `scripts` folder if desired

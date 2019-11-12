@@ -1,5 +1,6 @@
 { lib, config, resources, name, ... }:
 let inherit (config.node) fqdn;
+  inherit (import ../nix {}) jormungandr-master;
   enableSSL = config.deployment.targetEnv != "libvirtd";
   protocol = if enableSSL then "https" else "http";
   inherit (import ../globals.nix) domain;
@@ -40,4 +41,5 @@ in {
   };
 
   #services.jormungandr.rest.cors.allowedOrigins = [ "https://shelley-testnet-explorer-qa.netlify.com" ];
+  services.jormungandr.package = lib.mkForce jormungandr-master;
 }
