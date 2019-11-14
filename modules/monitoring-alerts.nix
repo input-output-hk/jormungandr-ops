@@ -27,7 +27,7 @@
     }
     {
       alert = "jormungandr_faucetFunds_monitor";
-      expr = "jormungandr_faucetFunds < 5000000000000";
+      expr = ''(jormungandr_address_funds{alias=~"faucet.*"} / 1e6) < 5000000'';
       #expr = "jormungandr_faucetFunds < 10000000000000";
       for = "5m";
       labels.severity = "page";

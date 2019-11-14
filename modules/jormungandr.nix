@@ -63,6 +63,7 @@ in {
     config.services.jormungandr.jcliPackage
     janalyze
     sendFunds
+    checkTxStatus
   ];
 
   services.jormungandr-monitor = {

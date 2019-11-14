@@ -41,5 +41,4 @@ in {
   };
 
   #services.jormungandr.rest.cors.allowedOrigins = [ "https://shelley-testnet-explorer-qa.netlify.com" ];
-  services.jormungandr.package = lib.mkForce jormungandr-master;
 }

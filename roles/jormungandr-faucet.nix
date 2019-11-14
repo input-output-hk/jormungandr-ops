@@ -2,17 +2,28 @@
 let sources = import ../nix/sources.nix;
     inherit (import ../globals.nix) domain;
     ada = lovelace: lovelace * 1000000;
+    leaderKeyNum = 1;
 in {
-  imports =
-    [ (sources.jormungandr-faucet + "/nix/nixos") ./jormungandr-relay.nix ];
+  imports = [
+    (sources.jormungandr-faucet + "/nix/nixos")
+    (sources.jormungandr-nix + "/nixos")
+    ./jormungandr-relay.nix
+  ];
+
 
   node.fqdn = "${name}.${domain}";
 
-  deployment.keys."faucet.sk" = { keyFile = ../static/leader_1_key.sk; };
+  deployment.keys."faucet.sk" = {
+    keyFile = ../. + "/static/leader_${toString leaderKeyNum}_key.sk";
+  };
 
   deployment.ec2.securityGroups = [
     resources.ec2SecurityGroups."allow-public-www-https-${config.node.region}"
   ];
+
+  services.jormungandr-monitor = {
+    genesisAddrSelector = leaderKeyNum;
+  };
 
   services.jormungandr-faucet = {
     enable = true;
