@@ -27,7 +27,7 @@ let
     ../physical/aws/security-groups/allow-monitoring-collection.nix
     ../physical/aws/security-groups/allow-public-www-https.nix
     ../physical/aws/security-groups/allow-jormungandr.nix
-    ../physical/aws/security-groups/allow-graylog.nix
+    ../physical/aws/security-groups/allow-graylog-nodes.nix
   ];
 
   importSecurityGroup = region: file:
