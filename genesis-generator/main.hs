@@ -5,11 +5,13 @@
 module Main (main) where
 
 import System.Environment (getArgs)
-import Turtle hiding (o)
+import Turtle hiding (o, sh)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.Ix hiding (index)
 import Data.Aeson
+import Debug.Trace
+
 import GHC.Generics
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Vector as V
@@ -211,6 +213,10 @@ main = do
       pure ()
   go args
 
+sh :: Text -> Shell Line -> Shell Line
+sh cmd arg =
+  inshell (trace (show cmd) cmd) arg
+
 generateSecret :: Flag1 -> IO SecretKey
 generateSecret keytype = do
   let
@@ -219,7 +225,7 @@ generateSecret keytype = do
     typeTable VRFKey = "Curve25519_2HashDH"
     typeTable KESKey = "SumEd25519_12"
     cmd = format ("jcli key generate --type="%s) (typeTable keytype)
-  SecretKey . lineToText <$> single (inshell cmd empty)
+  SecretKey . lineToText <$> single (sh cmd empty)
 
 generateFaucetData :: IO (SecretKey, PublicKey, Address)
 generateFaucetData = do
@@ -237,12 +243,12 @@ generateLeader = do
 secretToPublic :: SecretKey -> IO PublicKey
 secretToPublic (SecretKey sec) = do
   let secStream = toLines $ select [ sec ]
-  PublicKey . lineToText <$> single (inshell "jcli key to-public" secStream)
+  PublicKey . lineToText <$> single (sh "jcli key to-public" secStream)
 
 publicToAddress :: PublicKey -> IO Address
 publicToAddress (PublicKey pub) = do
   let cmd = format ("jcli address account --testing "%s) pub
-  Address . lineToText <$> single (inshell cmd empty)
+  Address . lineToText <$> single (sh cmd empty)
 
 generateStakePool :: IO StakePool
 generateStakePool = do
@@ -254,12 +260,12 @@ generateStakePool = do
   leaderAddress <- publicToAddress leaderPublic
   let
     cmd = format ("jcli certificate new stake-pool-registration --kes-key "%s%" --vrf-key "%s%" --owner "%s%" --serial 1010101010 --management-threshold 1 --start-validity 0") (unPublic kesPublic) (unPublic vrfPublic) (unPublic leaderPublic)
-  certRegistration <- Certificate . lineToText <$> single (inshell cmd empty)
+  certRegistration <- Certificate . lineToText <$> single (sh cmd empty)
   signedCertificate <- signCertificate certRegistration leaderSecret
   stakePoolId <- getPoolId signedCertificate
   let
-    cmd2 = format ("jcli certificate new stake-delegation "%s%" "%s) (unPoolId stakePoolId) (unPublic leaderPublic)
-  delegationCert <- Certificate . lineToText <$> single (inshell cmd2 empty)
+    cmd2 = format ("jcli certificate new stake-delegation "%s%" "%s) (unPublic leaderPublic) (unPoolId stakePoolId)
+  delegationCert <- Certificate . lineToText <$> single (sh cmd2 empty)
   signedDelegationCert <- signCertificate delegationCert leaderSecret
   pure $ StakePool{leaderSecret, leaderPublic, leaderAddress, vrfSecret, vrfPublic, kesSecret, kesPublic, signedCertificate, signedDelegationCert, stakePoolId}
 
@@ -275,9 +281,9 @@ signCertificate certreg (SecretKey secret) = do
       liftIO $ writeFile (encodeString leaderSecretPath) (T.unpack secret)
       let
         cmd = format ("jcli certificate sign -k "%fp) leaderSecretPath
-      SignedCert . lineToText <$> single (inshell cmd (toLines $ select [ unCert certreg ]))
+      SignedCert . lineToText <$> single (sh cmd (toLines $ select [ unCert certreg ]))
   with go (\result -> pure result)
 
 getPoolId :: SignedCert StakePoolCert -> IO PoolId
 getPoolId (SignedCert signedCert) = do
-  PoolId . lineToText <$> single (inshell "jcli certificate get-stake-pool-id" (toLines $ select [ signedCert ]))
+  PoolId . lineToText <$> single (sh "jcli certificate get-stake-pool-id" (toLines $ select [ signedCert ]))
