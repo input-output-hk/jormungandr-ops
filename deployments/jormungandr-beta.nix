@@ -7,9 +7,9 @@ let
     attrValues filter filterAttrs flatten foldl' hasAttrByPath listToAttrs
     mapAttrs' nameValuePair recursiveUpdate unique;
 
-  cluster = import ../clusters/jormungandr-testnet.nix {
+  cluster = import ../clusters/jormungandr-beta.nix {
     targetEnv = "ec2";
-    tiny = ../physical/aws/t2.xlarge.nix;
+    tiny = ../physical/aws/t3a.medium.nix;
     large = ../physical/aws/t3.xlarge.nix;
   };
 
@@ -22,12 +22,11 @@ let
 
   securityGroupFiles = [
     ../physical/aws/security-groups/allow-all.nix
-    ../physical/aws/security-groups/allow-ssh.nix
-    # ../physical/aws/security-groups/allow-deployer-ssh.nix
+    ../physical/aws/security-groups/allow-deployer-ssh.nix
     ../physical/aws/security-groups/allow-monitoring-collection.nix
     ../physical/aws/security-groups/allow-public-www-https.nix
     ../physical/aws/security-groups/allow-jormungandr.nix
-    ../physical/aws/security-groups/allow-graylog.nix
+    ../physical/aws/security-groups/allow-graylog-nodes.nix
   ];
 
   importSecurityGroup = region: file:
