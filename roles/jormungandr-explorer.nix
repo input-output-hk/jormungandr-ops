@@ -30,7 +30,7 @@ in {
     commonHttpConfig = ''
       map $http_origin $origin_allowed {
         default 0;
-        https://shelley-testnet-explorer-qa.netlify.com 1;
+        https://shelley-testnet-explorer-nightly.netlify.com 1;
       }
 
       map $origin_allowed $origin {
