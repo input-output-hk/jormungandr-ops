@@ -57,11 +57,11 @@ let
     (fileName: _: (__match "^secret_pool_[0-9]+.yaml$" fileName) != null)
     (__readDir ../static));
 
-  nextStakeKey = stakeKeys:
+  nextStakeKey = elem: stakeKeys:
     if __length stakeKeys > 0 then
       __head stakeKeys
     else
-      abort "Not enough stake keys for your cluster";
+      abort "Not enough stake keys for node ${elem.name}";
 
   addStakeKeys = stakeKeys: elems:
     foldl ({ stakeKeys, nodes }: elem:
@@ -74,9 +74,9 @@ let
       elems;
 
   addStakeKey = stakeKeys: elem:
-    if elem.value.node.isStake then {
-      nodes = [ (addDeploymentKey elem (nextStakeKey stakeKeys)) ];
-      stakeKeys = __tail stakeKeys;
+    if elem.value.node.isStake && !(elem.value.node.dontGenerateKey or false) then {
+      nodes = [ (addDeploymentKey elem (nextStakeKey elem stakeKeys)) ];
+      stakeKeys = (pp (__tail stakeKeys));
     } else {
       nodes = [ elem ];
       inherit stakeKeys;

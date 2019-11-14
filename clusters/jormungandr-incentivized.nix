@@ -32,16 +32,45 @@ let
       node.isRelay = true;
     };
 
+    iohk = {
+      imports = [ medium ../roles/jormungandr-stake.nix ];
+      deployment.ec2.region = "us-west-1";
+      node.isStake = true;
+      node.dontGenerateKey = true;
+      deployment.keys."secret_pool.yaml" = {
+        keyFile = ../secrets/iohk/iohk-secret.yaml;
+        user = "jormungandr";
+      };
+    };
+
+    emurgo = {
+      imports = [ medium ../roles/jormungandr-stake.nix ];
+      deployment.ec2.region = "us-west-1";
+      node.isStake = true;
+      node.dontGenerateKey = true;
+      deployment.keys."secret_pool.yaml" = {
+        keyFile = ../secrets/emurgo/emurgo-secret.yaml;
+        user = "jormungandr";
+      };
+    };
+
+    cf = {
+      imports = [ medium ../roles/jormungandr-stake.nix ];
+      deployment.ec2.region = "ap-northeast-1";
+      node.isStake = true;
+      node.dontGenerateKey = true;
+      deployment.keys."secret_pool.yaml" = {
+        keyFile = ../secrets/cf/cf-secret.yaml;
+        user = "jormungandr";
+      };
+    };
+
     #faucet = {
     #  imports = [ medium ../roles/jormungandr-faucet.nix ];
     #  deployment.ec2.region = "eu-central-1";
     #  node.isFaucet = true;
     #  node.isRelay = true;
     #};
-
-    stake-a = mkStakes "us-west-1" 1;
-    stake-b = mkStakes "ap-northeast-1" 1;
-    stake-c = mkStakes "eu-central-1" 1;
 
     relay-a = mkRelays "us-west-1" 2;
     relay-b = mkRelays "ap-northeast-1" 2;

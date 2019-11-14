@@ -9,5 +9,7 @@ pkgs.mkShell {
     nixops
     openssl
     zip
+    delegateStake
+    createStakePool
   ];
 }

@@ -107,6 +107,11 @@ in {
             type = bool;
             default = false;
           };
+
+          dontGenerateKey = mkOption {
+            type = bool;
+            default = false;
+          };
         };
       };
     };

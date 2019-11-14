@@ -1,28 +1,6 @@
 let
   ada = n: n * 1000000; # lovelace
-in {
-  stakePoolCount ? 7
-, stakePoolBalances ? __genList (_: ada 10000000) stakePoolCount
-, inputParams ? {}
-}:
-
-let
-  sources = import ../nix/sources.nix;
-  commonLib = import sources.iohk-nix {};
-  inherit (commonLib.pkgs) lib;
-  pkgs = import sources.nixpkgs {};
-
-  inputConfig = __toFile "input.json" (__toJSON ({
-    inherit stakePoolBalances stakePoolCount;
-    inputBlockchainConfig = blockchainConfig;
-    #extraLegacyFunds = (builtins.fromJSON (builtins.readFile ~/utxo-accept-3191080.json)).fund;
-    extraLegacyFunds = [];
-    extraFunds = [];
-    extraDelegationCerts = [];
-    extraStakePools = [];
-  } // inputParams));
-
-  blockchainConfig = {
+  blockchainConfigDefaults = {
     bft_slots_ratio = 0;
     block0_consensus = "genesis_praos";
     block0_date = __currentTime;
@@ -40,6 +18,28 @@ let
     slot_duration = 2;
     slots_per_epoch = 7200;
   };
+in {
+  stakePoolCount ? 7
+, stakePoolBalances ? __genList (_: ada 10000000) stakePoolCount
+, inputParams ? {}
+, blockchainConfig ? blockchainConfigDefaults
+}:
+
+let
+  sources = import ../nix/sources.nix;
+  commonLib = import sources.iohk-nix {};
+  inherit (commonLib.pkgs) lib;
+  pkgs = import sources.nixpkgs {};
+
+  inputConfig = __toFile "input.json" (__toJSON ({
+    inherit stakePoolBalances stakePoolCount;
+    inputBlockchainConfig = blockchainConfig;
+    extraLegacyFunds = [];
+    extraFunds = [];
+    extraDelegationCerts = [];
+    extraStakePools = [];
+  } // inputParams));
+
 in lib.fix (self: {
   jcli = commonLib.rust-packages.pkgs.jormungandr-cli;
   jormungandr = commonLib.rust-packages.pkgs.jormungandr;
