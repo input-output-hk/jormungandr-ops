@@ -28,10 +28,10 @@ in {
   services.jormungandr-faucet = {
     enable = true;
     lovelacesToGive = ada 10000;
-    jormungandrApi =
-      "http://${config.services.jormungandr.rest.listenAddress}/api/v0";
+    jormungandrApi = "http://${config.services.jormungandr.rest.listenAddress}/api";
     secondsBetweenRequests = 30;
     secretKeyPath = "/run/keys/faucet.sk";
+    jormungandrCliPackage = config.services.jormungandr.jcliPackage;
   };
 
   systemd.services."jormungandr-faucet" = {
