@@ -10,7 +10,6 @@ in {
     ./jormungandr-relay.nix
   ];
 
-
   node.fqdn = "${name}.${domain}";
 
   deployment.keys."faucet.sk" = {
