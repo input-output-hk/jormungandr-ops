@@ -48,6 +48,9 @@ data BlockchainConfig = BlockchainConfig
   , maxNumberOfTransactionsPerBlock :: Int
   , slotDuration :: Int
   , slotsPerEpoch :: Int
+  , treasury :: Int
+  , totalRewardSupply :: Int
+  , rewardParameters :: RewardParameters
   } deriving (Show, Generic)
 
 instance FromJSON BlockchainConfig where
@@ -81,6 +84,24 @@ data StakePoolSecret = StakePoolSecret
   , sigKey :: SecretKey
   } deriving Generic
 
+data PerCertificateFees = PerCertificateFees
+  { certificatePoolRegistration :: Int
+  , certificateStakeDelegation :: Int
+  , certificateOwnerStakeDelegation :: Int
+  }
+
+data RewardParameters = RewardParameters
+  { halving :: RewardParametersHalving
+  } deriving (Show, Generic)
+
+data RewardParametersHalving = RewardParametersHalving
+  { rewardConstant :: Int
+  , ratio :: T.Text
+  , epochStart :: Int
+  , epochRate :: Int
+  } deriving (Show, Generic)
+
+
 data InputConfig = InputConfig
   { stakePoolBalances :: [Integer]
   , stakePoolCount :: Int
@@ -92,7 +113,11 @@ data InputConfig = InputConfig
   } deriving (Show, Generic)
 
 customOptions :: Options
-customOptions = defaultOptions { fieldLabelModifier = camelTo2 '_' }
+customOptions = defaultOptions { fieldLabelModifier = modifyFieldLabel }
+
+modifyFieldLabel :: String -> String
+modifyFieldLabel "rewardConstant" = "constant"
+modifyFieldLabel a = camelTo2 '_' a
 
 instance FromJSON InputConfig where
   parseJSON = withObject "InputConfig" $ \o -> InputConfig
@@ -127,6 +152,22 @@ instance ToJSON LinearFees where
 
 instance FromJSON LinearFees where
   parseJSON = genericParseJSON customOptions
+
+instance ToJSON RewardParameters where
+  toJSON = genericToJSON customOptions
+
+instance FromJSON RewardParameters where
+  parseJSON = genericParseJSON customOptions
+
+instance ToJSON RewardParametersHalving where
+  toJSON = genericToJSON customOptions
+
+instance FromJSON RewardParametersHalving where
+  parseJSON = withObject "RewardParametersHalving" $ \o -> RewardParametersHalving
+    <$> o .: "constant"
+    <*> o .: "ratio"
+    <*> o .: "epoch_start"
+    <*> o .: "epoch_rate"
 
 -- turns a signed certificate into a json object in the form of {"cert":"..."}
 wrapCert :: SignedCert a -> Value
@@ -259,7 +300,7 @@ generateStakePool = do
   kesPublic <- secretToPublic kesSecret
   leaderAddress <- publicToAddress leaderPublic
   let
-    cmd = format ("jcli certificate new stake-pool-registration --kes-key "%s%" --vrf-key "%s%" --owner "%s%" --serial 1010101010 --management-threshold 1 --start-validity 0") (unPublic kesPublic) (unPublic vrfPublic) (unPublic leaderPublic)
+    cmd = format ("jcli certificate new stake-pool-registration --kes-key "%s%" --vrf-key "%s%" --owner "%s%" --management-threshold 1 --start-validity 0") (unPublic kesPublic) (unPublic vrfPublic) (unPublic leaderPublic)
   certRegistration <- Certificate . lineToText <$> single (sh cmd empty)
   signedCertificate <- signCertificate certRegistration leaderSecret
   stakePoolId <- getPoolId signedCertificate

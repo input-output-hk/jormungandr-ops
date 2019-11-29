@@ -17,23 +17,40 @@ let
     max_number_of_transactions_per_block = 255;
     slot_duration = 2;
     slots_per_epoch = 7200;
+
+    treasury = 0;
+
+    treasury_parameters = {
+      fixed = 1000;
+      ratio = "1/10";
+    };
+
+    total_reward_supply = ada 10000000;
+
+    reward_parameters = {
+      halving = {
+        constant = 100;
+        ratio = "13/19";
+        epoch_start = 1;
+        epoch_rate = 3;
+      };
+    };
   };
 in {
   stakePoolCount ? 7
 , stakePoolBalances ? __genList (_: ada 10000000) stakePoolCount
 , inputParams ? {}
 , blockchainConfig ? blockchainConfigDefaults
+, extraBlockchainConfig ? {}
 }:
 
 let
-  sources = import ../nix/sources.nix;
-  commonLib = import sources.iohk-nix {};
-  inherit (commonLib.pkgs) lib;
-  pkgs = import sources.nixpkgs {};
+  pkgs = import ../nix { };
+  inherit (pkgs) lib;
 
   inputConfig = __toFile "input.json" (__toJSON ({
     inherit stakePoolBalances stakePoolCount;
-    inputBlockchainConfig = blockchainConfig;
+    inputBlockchainConfig = lib.recursiveUpdate blockchainConfig extraBlockchainConfig;
     extraLegacyFunds = [];
     extraFunds = [];
     extraDelegationCerts = [];
@@ -41,8 +58,7 @@ let
   } // inputParams));
 
 in lib.fix (self: {
-  jcli = commonLib.rust-packages.pkgs.jormungandr-cli;
-  jormungandr = commonLib.rust-packages.pkgs.jormungandr;
+  inherit (pkgs.jormungandrEnv.packages) jcli jormungandr;
   ghc = pkgs.haskellPackages.ghcWithPackages (ps: with ps; [ aeson turtle split ]);
   genesis-generator = pkgs.runCommand "genesis-generator" {
     buildInputs = [ self.ghc self.jcli pkgs.haskellPackages.ghcid ];

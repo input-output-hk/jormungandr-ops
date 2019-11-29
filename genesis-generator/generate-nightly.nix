@@ -3,6 +3,33 @@ let
   ada = n: n * 1000000; # lovelace
   stakePoolCount = 7;
   stakePoolBalances = __genList (_: ada 10000000) stakePoolCount;
+
+  extraBlockchainConfig = {
+    linear_fees = {
+      constant = 2;
+      coefficient = 1;
+      certificate = 4;
+    };
+
+    treasury = 0;
+
+    treasury_parameters = {
+      fixed = 1000;
+      ratio = "1/10";
+    };
+
+    total_reward_supply = ada 10000000;
+
+    reward_parameters = {
+      halving = {
+        constant = 100;
+        ratio = "13/19";
+        epoch_start = 1;
+        epoch_rate = 3;
+      };
+    };
+  };
+
   inputParams = {
     extraLegacyFunds = [
       { "address" = "DdzFFzCqrhtCWeg6PywoAR8wrza9DawkU2KgQddh7oi43LZy1kbZgZYK2hakgtXZu8Q7ptnhFjgV3ZgRgSypFhwtK9paG3ui17PiVUmB"; value = ada 100000; }
@@ -24,4 +51,4 @@ let
      "signedcert1qvqqqqqqqqqqqqqqqqqqq0p5avfqqqqqqqqqqqqqqqqqqqqqqqqqrkks683u4c7n2dac643xjr3tyjwwcmv2c80k4rzyfj3c0nhhw2zyp6mpka2d2puq4cr9t0twuyqaf3xtujpmz2w7maua8dahjzwwjvzqra5905tsnxgd5fp2k7vhptw6rflp2pctdwle9kcfpysnrmuyf0jqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqpqpvves4ds857muzcvw59xhrg567duc5j9pgqjmq9vl9xcfuwdqqsf2ze3d3e3rq54rnufwnm40n4smta7aamfk7nms4s7ljgr2szexqdf5aups"
     ];
   };
-in import ./. { inherit inputParams stakePoolCount stakePoolBalances; }
+in import ./. { inherit inputParams stakePoolCount stakePoolBalances extraBlockchainConfig; }
