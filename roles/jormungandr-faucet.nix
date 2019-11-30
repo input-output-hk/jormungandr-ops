@@ -2,7 +2,7 @@
 let sources = import ../nix/sources.nix;
     inherit (import ../globals.nix) domain;
     ada = lovelace: lovelace * 1000000;
-    leaderKeyNum = 1;
+    leaderKeyNum = 2;
 in {
   imports = [
     (sources.jormungandr-faucet + "/nix/nixos")
@@ -29,7 +29,7 @@ in {
     enable = true;
     lovelacesToGive = ada 10000;
     jormungandrApi = "http://${config.services.jormungandr.rest.listenAddress}/api";
-    secondsBetweenRequests = 30;
+    secondsBetweenRequests = 24 * 60 * 60;
     secretKeyPath = "/run/keys/faucet.sk";
     jormungandrCliPackage = config.services.jormungandr.jcliPackage;
   };

@@ -1,4 +1,4 @@
-{ targetEnv, tiny, large }:
+{ targetEnv, large, xlarge, xlarge-monitor }:
 let
   mkNodes = import ../nix/mk-nodes.nix { inherit targetEnv; };
   pkgs = import ../nix { };
@@ -6,7 +6,7 @@ let
 
   relays = lib.mapAttrs' (region: amount:
     lib.nameValuePair "relay-${region}" {
-      imports = [ tiny ../roles/jormungandr-relay.nix ];
+      imports = [ large ../roles/jormungandr-relay.nix ];
       inherit amount;
       deployment.ec2.region = region;
       node.isRelay = true;
@@ -18,40 +18,43 @@ let
 
   nodes = mkNodes ({
     monitoring = {
-      imports = [ large ../roles/monitor.nix ];
+      imports = [ xlarge-monitor ../roles/monitor.nix ];
       deployment.ec2.region = "eu-central-1";
       node.isMonitoring = true;
     };
 
     explorer = {
-      imports = [ tiny ../roles/jormungandr-explorer.nix ];
-      deployment.ec2.region = "eu-central-1";
+      imports = [ xlarge ../roles/jormungandr-explorer.nix ];
+      deployment.ec2 = {
+        region = "eu-central-1";
+        ebsInitialRootDiskSize = lib.mkForce 30;
+      };
       node.isExplorer = true;
     };
 
     faucet = {
-      imports = [ tiny ../roles/jormungandr-faucet.nix ];
+      imports = [ large ../roles/jormungandr-faucet.nix ];
       deployment.ec2.region = "eu-central-1";
       node.isFaucet = true;
     };
 
     stake-euc1 = {
       amount = 3;
-      imports = [ tiny ../roles/jormungandr-stake.nix ];
+      imports = [ large ../roles/jormungandr-stake.nix ];
       deployment.ec2.region = "eu-central-1";
       node.isStake = true;
     };
 
     stake-apn1 = {
       amount = 2;
-      imports = [ tiny ../roles/jormungandr-stake.nix ];
+      imports = [ large ../roles/jormungandr-stake.nix ];
       deployment.ec2.region = "ap-northeast-1";
       node.isStake = true;
     };
 
     stake-usw1 = {
       amount = 2;
-      imports = [ tiny ../roles/jormungandr-stake.nix ];
+      imports = [ large ../roles/jormungandr-stake.nix ];
       deployment.ec2.region = "us-west-1";
       node.isStake = true;
     };

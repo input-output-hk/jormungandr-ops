@@ -4,7 +4,7 @@ pkgs.mkShell {
     sqliteInteractive
     cacert
     crystal
-    jormungandr-cli
+    jormungandrEnv.packages.jcli
     niv
     nixops
     openssl

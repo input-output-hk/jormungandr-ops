@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }: {
+{ pkgs, lib, nodes, ... }: {
   services.monitoring-services.applicationRules = [
     {
       alert = "jormungandr_block_divergence";
@@ -25,17 +25,18 @@
         #description = "{{$labels.alias}} Jormungandr blockheight unchanged for >=10mins.";
       };
     }
-    {
+    (
+      let threshold = nodes.faucet.config.services.jormungandr-faucet.lovelacesToGive * 50;
+          ada = threshold / 1000000;
+      in {
       alert = "jormungandr_faucetFunds_monitor";
-      expr = ''(jormungandr_address_funds{alias=~"faucet.*"} / 1e6) < 5000000'';
-      #expr = "jormungandr_faucetFunds < 10000000000000";
+      expr = ''(jormungandr_address_funds{alias=~"faucet.*"}) < ${toString threshold}'';
       for = "5m";
       labels.severity = "page";
       annotations = {
-        description = "{{$labels.alias}} Jormungandr faucet wallet balance is low (< 5M ADA)";
-        #description = "{{$labels.alias}} Jormungandr faucet wallet balance is low (< 10M ADA)";
+        description = "{{$labels.alias}} Jormungandr faucet wallet balance is low (< ${toString ada} ADA)";
       };
-    }
+    })
     {
       alert = "prometheus WAL corruption";
       expr = "(rate(prometheus_tsdb_wal_corruptions_total[5m]) OR on() vector(1)) > 0";

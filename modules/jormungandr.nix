@@ -5,6 +5,8 @@ let
   pkgs = import ../nix { };
   inherit (pkgs.packages) pp;
   inherit (builtins) filter attrValues mapAttrs;
+  globals = import ../globals.nix;
+  environment = pkgs.jormungandrLib.environments.${environment};
 
   compact = l: filter (e: e != null) l;
   peerAddress = nodeName: node:
@@ -34,8 +36,8 @@ in {
   services.jormungandr = {
     enable = true;
     withBackTraces = true;
-    package = pkgs.jormungandr;
-    jcliPackage = pkgs.jormungandr-cli;
+    package = pkgs.jormungandrEnv.packages.jormungandr;
+    jcliPackage = pkgs.jormungandrEnv.packages.jcli;
     rest.cors.allowedOrigins = [ ];
     publicAddress = if config.deployment.targetEnv == "ec2" then
       "/ip4/${resources.elasticIPs."${name}-ip".address}/tcp/3000"
@@ -51,7 +53,7 @@ in {
     maxConnections = 11000;
     publicId = publicIds."${name}" or (abort "run ./scripts/update-jormungandr-public-ids.rb");
   };
-  systemd.services.jormungandr.serviceConfig.MemoryMax = "3G";
+  systemd.services.jormungandr.serviceConfig.MemoryMax = "7G";
 
 
   networking.firewall.allowedTCPPorts = [ 3000 ];

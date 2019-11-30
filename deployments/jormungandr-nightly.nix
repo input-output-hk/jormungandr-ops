@@ -9,8 +9,9 @@ let
 
   cluster = import ../clusters/jormungandr-nightly.nix {
     targetEnv = "ec2";
-    tiny = ../physical/aws/t3a.medium.nix;
-    large = ../physical/aws/t3.xlarge.nix;
+    large = ../physical/aws/t3a.large.nix;
+    xlarge = ../physical/aws/r5a.xlarge.nix;
+    xlarge-monitor = ../physical/aws/r5a.xlarge-monitor.nix;
   };
 
   nodes = filterAttrs (name: node:

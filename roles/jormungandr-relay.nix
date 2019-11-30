@@ -1,8 +1,4 @@
-{ lib, name, ... }:
-let
-  pkgs = import ../nix { };
-  inherit (pkgs) jormungandr-cli runCommandNoCC;
-in {
+{ lib, name, ... }: {
   imports = [ ../modules/jormungandr.nix ];
 
   services.jormungandr = {
