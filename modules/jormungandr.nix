@@ -46,8 +46,8 @@ in {
     listenAddress = "/ip4/0.0.0.0/tcp/3000";
     rest.listenAddress = "${config.networking.privateIPv4}:3001";
     logger = {
-      level = "info";
-      output = "stderr";
+      level = "debug";
+      output = "journald";
     };
     inherit trustedPeers;
     maxConnections = 11000;
@@ -74,6 +74,11 @@ in {
       if (builtins.pathExists ../static/genesis.yaml)
       then ../static/genesis.yaml
       else null;
+  };
+
+  services.journald = {
+    rateLimitInterval = "30s";
+    rateLimitBurst = 10000;
   };
 
   services.nginx.enableReload = true;
