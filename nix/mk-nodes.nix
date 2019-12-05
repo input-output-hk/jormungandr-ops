@@ -31,6 +31,7 @@ let
       imports = args.imports ++ [ ../modules/common.nix ];
       deployment.targetEnv = targetEnv;
       node.isStake = false;
+      _module.args.globals = import ../globals.nix;
     } args;
 
   definitionToNode = name:

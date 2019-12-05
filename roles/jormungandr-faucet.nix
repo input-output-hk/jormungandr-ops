@@ -1,8 +1,7 @@
-{ config, resources, name, ... }:
+{ config, resources, name, globals, ... }:
 let sources = import ../nix/sources.nix;
-    inherit (import ../globals.nix) domain;
     ada = lovelace: lovelace * 1000000;
-    leaderKeyNum = 2;
+    leaderKeyNum = 3;
 in {
   imports = [
     (sources.jormungandr-faucet + "/nix/nixos")
@@ -11,7 +10,7 @@ in {
   ];
 
 
-  node.fqdn = "${name}.${domain}";
+  node.fqdn = "${name}.${globals.domain}";
 
   deployment.keys."faucet.sk" = {
     keyFile = ../. + "/static/leader_${toString leaderKeyNum}_key.sk";
@@ -76,7 +75,7 @@ in {
     '';
 
     virtualHosts = {
-      "${name}.${domain}" = {
+      "${name}.${globals.domain}" = {
         forceSSL = config.deployment.targetEnv != "libvirtd";
         enableACME = config.deployment.targetEnv != "libvirtd";
 

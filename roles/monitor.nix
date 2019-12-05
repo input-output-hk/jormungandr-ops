@@ -1,26 +1,16 @@
-{ pkgs, lib, config, nodes, resources, name, deploymentName, ... }:
+{ pkgs, lib, config, nodes, resources, name, deploymentName, globals, ... }:
 let
   sources = import ../nix/sources.nix;
 
-  inherit (import ../globals.nix) domain;
   inherit (lib) mapAttrs' hasPrefix listToAttrs attrValues nameValuePair;
 
-  monitoringFor = node:
+  monitoringFor = nodeName: node:
     let cfg = node.config.node;
     in {
       hasJormungandrPrometheus = cfg.isRelay || cfg.isStake;
       hasNginx = cfg.isFaucet || cfg.isExplorer || cfg.isMonitoring;
+      labels = { alias = nodeName; };
     };
-
-  mkMonitoredNodes = suffix:
-    mapAttrs'
-    (name: node: nameValuePair "${name}${suffix}" (monitoringFor node)) nodes;
-
-  monitoredNodes = {
-    ec2 = mkMonitoredNodes "-ip";
-    libvirtd = mkMonitoredNodes "";
-    packet = mkMonitoredNodes "";
-  };
 
   loadFile = file:
     if __pathExists file then import file else {};
@@ -32,14 +22,16 @@ in {
     ../modules/monitoring-alerts.nix
   ];
 
-  node.fqdn = "${name}.${domain}";
+  node.fqdn = "${name}.${globals.domain}";
 
   deployment.ec2.securityGroups = [
     resources.ec2SecurityGroups."allow-public-www-https-${config.node.region}"
+    resources.ec2SecurityGroups."allow-wireguard-${config.node.region}"
   ];
 
   services.monitoring-services = {
     enable = true;
+    enableWireguard = true;
     webhost = config.node.fqdn;
     enableACME = config.deployment.targetEnv != "libvirtd";
     extraHeader = "Deployment Name: ${deploymentName}<br>";
@@ -50,7 +42,8 @@ in {
     oauth = loadFile ../secrets/oauth.nix;
     pagerDuty = loadFile ../secrets/pager-duty.nix;
 
-    monitoredNodes = monitoredNodes.${config.deployment.targetEnv};
+    monitoredNodes = mapAttrs'
+      (nodeName: node: nameValuePair nodeName (monitoringFor nodeName node)) nodes;
 
     applicationDashboards =
       [ (sources.jormungandr-nix + "/nixos/jormungandr-monitor/grafana.json") ];

@@ -5,7 +5,6 @@ let
   pkgs = import ../nix { };
   inherit (pkgs.packages) pp;
   inherit (builtins) filter attrValues mapAttrs;
-  globals = import ../globals.nix;
   environment = pkgs.jormungandrLib.environments.${environment};
 
   compact = l: filter (e: e != null) l;
@@ -24,13 +23,13 @@ in {
   imports = [
     (sources.jormungandr-nix + "/nixos")
     ./monitoring-exporters.nix
+    ./wireguard.nix
     ./common.nix
   ];
   disabledModules = [ "services/networking/jormungandr.nix" ];
 
   deployment.ec2.securityGroups = [
     resources.ec2SecurityGroups."allow-jormungandr-${config.node.region}"
-    resources.ec2SecurityGroups."allow-monitoring-collection-${config.node.region}"
   ];
 
   services.jormungandr = {

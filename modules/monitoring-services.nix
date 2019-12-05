@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, name, nodes, ... }:
 
 with lib;
 
@@ -310,16 +310,37 @@ in {
 
   config = mkIf cfg.enable (mkMerge [
     (lib.mkIf cfg.enableWireguard {
+      networking.firewall.allowedUDPPorts = [ 17777 ];
+
+      deployment.keys."wg_${name}".keyFile = ../. + "/secrets/wireguard/${name}.private";
+      deployment.keys.wg_shared.keyFile = ../. + "/secrets/wireguard/shared.private";
+
       boot.extraModulePackages = [ config.boot.kernelPackages.wireguard ];
-      networking.firewall.allowedUDPPorts = [ 51820 ];
-      networking.wireguard.interfaces = {
-        wg0 = {
-          ips = [ "192.168.20.1/24" ];
-          listenPort = 51820;
-          privateKeyFile = "/etc/wireguard/monitoring.wgprivate";
-        };
+
+      networking.extraHosts = concatStringsSep "\n" (
+        map (host: "${host.ip} ${host.name}")
+            (mapAttrsToList (nodeName: node:
+              { ip = node.config.node.wireguardIP; name = nodeName; }
+            ) nodes)
+      );
+
+      networking.wg-quick.interfaces.wg0 = {
+        listenPort = 17777;
+        address = [ "${config.node.wireguardIP}/16" ];
+        privateKeyFile = "/run/keys/wg_${name}";
+
+        # TODO: remove monitoring from this list
+        peers = mapAttrsToList (nodeName: node:
+          {
+            allowedIPs = [ "${node.config.node.wireguardIP}/16" ];
+            publicKey = lib.fileContents (../. + "/secrets/wireguard/${nodeName}.public");
+            presharedKeyFile = "/run/keys/wg_shared";
+            persistentKeepalive = 25;
+          }
+        ) nodes;
       };
     })
+
     (lib.mkIf cfg.oauth.enable (let
       oauthProxyConfig = ''
         auth_request /oauth2/auth;

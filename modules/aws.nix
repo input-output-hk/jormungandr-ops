@@ -1,4 +1,4 @@
-{ lib, config, ... }:
+{ lib, config, name, ... }:
 with lib;
 with types;
 let cfg = config.node;
@@ -111,6 +111,11 @@ in {
           dontGenerateKey = mkOption {
             type = bool;
             default = false;
+          };
+
+          wireguardIP = mkOption {
+            type = str;
+            default = fileContents (../. +  "/secrets/wireguard/${name}.ip");
           };
         };
       };

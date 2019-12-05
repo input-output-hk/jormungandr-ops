@@ -25,18 +25,6 @@
         #description = "{{$labels.alias}} Jormungandr blockheight unchanged for >=10mins.";
       };
     }
-    (
-      let threshold = nodes.faucet.config.services.jormungandr-faucet.lovelacesToGive * 50;
-          ada = threshold / 1000000;
-      in {
-      alert = "jormungandr_faucetFunds_monitor";
-      expr = ''(jormungandr_address_funds{alias=~"faucet.*"}) < ${toString threshold}'';
-      for = "5m";
-      labels.severity = "page";
-      annotations = {
-        description = "{{$labels.alias}} Jormungandr faucet wallet balance is low (< ${toString ada} ADA)";
-      };
-    })
     {
       alert = "prometheus WAL corruption";
       expr = "(rate(prometheus_tsdb_wal_corruptions_total[5m]) OR on() vector(1)) > 0";
@@ -46,5 +34,16 @@
         description = "{{$labels.alias}} Prometheus WAL corruption total is changing or a no data condition has been detected";
       };
     }
-  ];
+  ] ++ (lib.optionals (nodes ? faucet) (
+    let threshold = nodes.faucet.config.services.jormungandr-faucet.lovelacesToGive * 50;
+        ada = threshold / 1000000;
+    in {
+    alert = "jormungandr_faucetFunds_monitor";
+    expr = ''(jormungandr_address_funds{alias=~"faucet.*"}) < ${toString threshold}'';
+    for = "5m";
+    labels.severity = "page";
+    annotations = {
+      description = "{{$labels.alias}} Jormungandr faucet wallet balance is low (< ${toString ada} ADA)";
+    };
+  }));
 }

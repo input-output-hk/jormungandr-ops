@@ -1,6 +1,5 @@
-{ config, lib, resources, name, pkgs, ... }:
+{ config, lib, resources, name, pkgs, globals, ... }:
 let sources = import ../nix/sources.nix;
-  inherit (import ../globals.nix) domain;
   sshKeys =
     import ((import ../nix/sources.nix).iohk-ops + "/lib/ssh-keys.nix") {
       inherit lib;

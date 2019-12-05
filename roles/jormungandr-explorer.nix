@@ -1,9 +1,8 @@
-{ pkgs, lib, config, resources, name, ... }:
+{ lib, pkgs, config, resources, name, globals, ... }:
 let inherit (config.node) fqdn;
   inherit (import ../nix {}) jormungandr-master;
   enableSSL = config.deployment.targetEnv != "libvirtd";
   protocol = if enableSSL then "https" else "http";
-  inherit (import ../globals.nix) domain environment;
 
   registryFiles = __filterSource (path: type:
     (__match ''.*ed25519_(.*)\.(sig|json)$'' path) != null
@@ -12,7 +11,7 @@ let inherit (config.node) fqdn;
     buildInputs = with pkgs; [ zip ];
     inherit registryFiles;
   } ''
-    dir=${environment}-testnet-stakepool-registry-master/registry
+    dir=${globals.environment}-testnet-stakepool-registry-master/registry
     mkdir -p $dir
     cp $registryFiles/* $dir
     zip -r -9 $out $dir
@@ -26,7 +25,7 @@ let inherit (config.node) fqdn;
 in {
   imports = [ ./jormungandr-relay.nix ];
 
-  node.fqdn = "${name}.${domain}";
+  node.fqdn = "${name}.${globals.domain}";
 
   deployment.ec2.securityGroups = [
     resources.ec2SecurityGroups."allow-public-www-https-${config.node.region}"
@@ -50,7 +49,7 @@ in {
     commonHttpConfig = ''
       map $http_origin $origin_allowed {
         default 0;
-        https://shelley-testnet-explorer-${environment}.netlify.com 1;
+        https://shelley-testnet-explorer-${globals.environment}.netlify.com 1;
       }
 
       map $origin_allowed $origin {

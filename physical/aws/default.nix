@@ -18,7 +18,6 @@ in {
 
     securityGroups = [
       resources.ec2SecurityGroups."allow-deployer-ssh-${region}"
-      resources.ec2SecurityGroups."allow-monitoring-collection-${region}"
     ];
   };
 

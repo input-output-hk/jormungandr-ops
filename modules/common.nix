@@ -8,9 +8,10 @@ let
   devOpsKeys = allKeysFrom devOps;
 in {
 
-  imports = [ ./aws.nix ../modules/monitoring-exporters.nix ];
+  imports = [ ./aws.nix ./monitoring-exporters.nix ];
 
   networking.hostName = name;
+  networking.privateIPv4 = lib.mkForce config.node.wireguardIP;
 
   environment.systemPackages = with pkgs; [
     bat
@@ -41,10 +42,7 @@ in {
   users.users.root.openssh.authorizedKeys.keys = devOpsKeys;
 
   services = {
-    monitoring-exporters.graylogHost =
-      if config.deployment.targetEnv == "ec2"
-      then "monitoring-ip:5044"
-      else "monitoring:5044";
+    monitoring-exporters.graylogHost = "monitoring:5044";
 
     nginx.mapHashBucketSize = 128;
 
