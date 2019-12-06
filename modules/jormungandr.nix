@@ -70,6 +70,7 @@ in {
 
   services.jormungandr-monitor = {
     enable = true;
+    jcliPackage = pkgs.jormungandrEnv.packages.jcli;
     genesisYaml =
       if (builtins.pathExists ../static/genesis.yaml)
       then ../static/genesis.yaml

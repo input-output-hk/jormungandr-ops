@@ -32,45 +32,93 @@ let
       node.isRelay = true;
     };
 
-    iohk = {
+    iohk1 = {
       imports = [ medium ../roles/jormungandr-stake.nix ];
       deployment.ec2.region = "us-west-1";
       node.isStake = true;
       node.dontGenerateKey = true;
       deployment.keys."secret_pool.yaml" = {
-        keyFile = ../secrets/iohk/iohk-secret.yaml;
+        keyFile = ../secrets/pools/IOHK1-secret.yaml;
         user = "jormungandr";
       };
     };
 
-    emurgo = {
+    iohk2 = {
       imports = [ medium ../roles/jormungandr-stake.nix ];
-      deployment.ec2.region = "us-west-1";
+      deployment.ec2.region = "eu-central-1";
       node.isStake = true;
       node.dontGenerateKey = true;
       deployment.keys."secret_pool.yaml" = {
-        keyFile = ../secrets/emurgo/emurgo-secret.yaml;
+        keyFile = ../secrets/pools/IOHK2-secret.yaml;
         user = "jormungandr";
       };
     };
 
-    cf = {
+    iohk3 = {
       imports = [ medium ../roles/jormungandr-stake.nix ];
       deployment.ec2.region = "ap-northeast-1";
       node.isStake = true;
       node.dontGenerateKey = true;
       deployment.keys."secret_pool.yaml" = {
-        keyFile = ../secrets/cf/cf-secret.yaml;
+        keyFile = ../secrets/pools/IOHK3-secret.yaml;
         user = "jormungandr";
       };
     };
 
-    #faucet = {
-    #  imports = [ medium ../roles/jormungandr-faucet.nix ];
-    #  deployment.ec2.region = "eu-central-1";
-    #  node.isFaucet = true;
-    #  node.isRelay = true;
-    #};
+    iohk4 = {
+      imports = [ medium ../roles/jormungandr-stake.nix ];
+      deployment.ec2.region = "us-west-1";
+      node.isStake = true;
+      node.dontGenerateKey = true;
+      deployment.keys."secret_pool.yaml" = {
+        keyFile = ../secrets/pools/IOHK4-secret.yaml;
+        user = "jormungandr";
+      };
+    };
+
+    iohk5 = {
+      imports = [ medium ../roles/jormungandr-stake.nix ];
+      deployment.ec2.region = "eu-central-1";
+      node.isStake = true;
+      node.dontGenerateKey = true;
+      deployment.keys."secret_pool.yaml" = {
+        keyFile = ../secrets/pools/IOHK5-secret.yaml;
+        user = "jormungandr";
+      };
+    };
+
+    iohk6 = {
+      imports = [ medium ../roles/jormungandr-stake.nix ];
+      deployment.ec2.region = "ap-northeast-1";
+      node.isStake = true;
+      node.dontGenerateKey = true;
+      deployment.keys."secret_pool.yaml" = {
+        keyFile = ../secrets/pools/IOHK6-secret.yaml;
+        user = "jormungandr";
+      };
+    };
+
+    iohk7 = {
+      imports = [ medium ../roles/jormungandr-stake.nix ];
+      deployment.ec2.region = "eu-central-1";
+      node.isStake = true;
+      node.dontGenerateKey = true;
+      deployment.keys."secret_pool.yaml" = {
+        keyFile = ../secrets/pools/IOHK7-secret.yaml;
+        user = "jormungandr";
+      };
+    };
+
+    iohk8 = {
+      imports = [ medium ../roles/jormungandr-stake.nix ];
+      deployment.ec2.region = "us-west-1";
+      node.isStake = true;
+      node.dontGenerateKey = true;
+      deployment.keys."secret_pool.yaml" = {
+        keyFile = ../secrets/pools/IOHK8-secret.yaml;
+        user = "jormungandr";
+      };
+    };
 
     relay-a = mkRelays "us-west-1" 2;
     relay-b = mkRelays "ap-northeast-1" 2;

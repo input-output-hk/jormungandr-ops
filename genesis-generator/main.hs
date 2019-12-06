@@ -36,7 +36,7 @@ data Genesis = Genesis
   } deriving Generic
 
 data BlockchainConfig = BlockchainConfig
-  { bftSlotsRatio :: Int
+  { blockContentMaxSize :: Int
   , block0Consensus :: T.Text --  = "genesis_praos";
   , block0Date :: Int
   , consensusGenesisPraosActiveSlotCoeff :: Float
@@ -45,7 +45,6 @@ data BlockchainConfig = BlockchainConfig
   , epoch_stability_depth :: Int
   , kesUpdateSpeed :: Int
   , linearFees :: LinearFees
-  , maxNumberOfTransactionsPerBlock :: Int
   , slotDuration :: Int
   , slotsPerEpoch :: Int
   , treasury :: Int
@@ -91,10 +90,10 @@ data PerCertificateFees = PerCertificateFees
   }
 
 data RewardParameters = RewardParameters
-  { halving :: RewardParametersHalving
+  { linear :: RewardParametersLinear
   } deriving (Show, Generic)
 
-data RewardParametersHalving = RewardParametersHalving
+data RewardParametersLinear = RewardParametersHalving
   { rewardConstant :: Int
   , ratio :: T.Text
   , epochStart :: Int
@@ -159,11 +158,11 @@ instance ToJSON RewardParameters where
 instance FromJSON RewardParameters where
   parseJSON = genericParseJSON customOptions
 
-instance ToJSON RewardParametersHalving where
+instance ToJSON RewardParametersLinear where
   toJSON = genericToJSON customOptions
 
-instance FromJSON RewardParametersHalving where
-  parseJSON = withObject "RewardParametersHalving" $ \o -> RewardParametersHalving
+instance FromJSON RewardParametersLinear where
+  parseJSON = withObject "RewardParametersLinear" $ \o -> RewardParametersHalving
     <$> o .: "constant"
     <*> o .: "ratio"
     <*> o .: "epoch_start"
