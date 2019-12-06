@@ -12,7 +12,9 @@ class Deployer
     skip_nixops = false,
     skip_copy = false,
     skip_healthcheck = false,
-    restore_backup = false
+    restore_backup = false,
+    since_time : String = 6.hours.ago.to_s,
+    until_time : String = Time.utc.to_s
 
   @nodes  = [] of Node::Any
   @config = Config.new
@@ -30,6 +32,8 @@ class Deployer
       parser.on "--all", "Deploy all nodes" { @nodes = all_nodes }
       parser.on "--stakes", "Deploy stake nodes" { @nodes = stakes }
       parser.on "--relays", "Deploy relays nodes" { @nodes = relays }
+      parser.on "--since=TIME", "Time from which logs are backed up" { |time| @config = @config.copy_with since_time: time }
+      parser.on "--until=TIME", "Time until which logs are backed up" { |time| @config = @config.copy_with until_time: time }
 
       parser.invalid_option do |flag|
         STDERR.puts "ERROR: #{flag} is not a valid option."
@@ -211,11 +215,11 @@ abstract class Node
   end
 
   def backup_log
-    # return if File.exists?(backup_log_file)
+    return if File.exists?(backup_log_file)
 
     FileUtils.mkdir_p backup_dir
 
-    args = ["ssh", @name, "--", "journalctl -x -o cat -u jormungandr --since '6 hours ago'"]
+    args = ["ssh", @name, "--", "journalctl -o verbose -u jormungandr --since #{config.since_time} --until #{config.until_time}"]
     Process.run "nixops", args: args do |process|
       File.open(backup_log_file, "w") do |log|
         IO.copy(process.output, log)
