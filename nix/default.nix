@@ -2,6 +2,7 @@
 with {
   overlay = self: super: {
     inherit (import sources.niv { }) niv;
+    inherit (import sources.cardano-wallet { }) cardano-wallet-jormungandr;
     packages = self.callPackages ./packages.nix { };
     inherit (import sources.iohk-nix { }) jormungandrLib;
     jormungandrEnv = self.jormungandrLib.environments.${self.globals.environment};

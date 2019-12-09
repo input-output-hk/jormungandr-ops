@@ -11,5 +11,6 @@ pkgs.mkShell {
     zip
     delegateStake
     createStakePool
+    cardano-wallet-jormungandr
   ];
 }
