@@ -5,10 +5,10 @@
         "homepage": null,
         "owner": "input-output-hk",
         "repo": "iohk-nix",
-        "rev": "c74a912722deefc7145963cd29fd01b399d60ec5",
-        "sha256": "1hzbgcl69bxl0w8phxvyacb9yalcm212qmn636qzdm42gwrghwgl",
+        "rev": "7593b7f0ea53e36ae8d425dbcd7bc70a67090132",
+        "sha256": "0np8vcy7kjwflddnwyr8q23smj5nazik3m4m4wh564bc3acjpapl",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/iohk-nix/archive/c74a912722deefc7145963cd29fd01b399d60ec5.tar.gz",
+        "url": "https://github.com/input-output-hk/iohk-nix/archive/7593b7f0ea53e36ae8d425dbcd7bc70a67090132.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "iohk-ops": {
