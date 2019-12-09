@@ -7,8 +7,9 @@ with {
     jormungandrEnv = self.jormungandrLib.environments.${self.globals.environment};
     globals = import ../globals.nix;
 
-    inherit ((import sources.jormungandr-nix {}).scripts)
+    inherit ((import sources.jormungandr-nix { inherit (self.globals) environment; }).scripts)
       janalyze sendFunds delegateStake createStakePool checkTxStatus;
+    inherit (self.jormungandrEnv.packages) jormungandr jcli;
 
     nixops = (import (sources.nixops-core + "/release.nix") {
       nixpkgs = super.path;

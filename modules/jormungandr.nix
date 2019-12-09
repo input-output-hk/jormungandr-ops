@@ -53,8 +53,13 @@ in {
     maxConnections = 11000;
     publicId = publicIds."${name}" or (abort "run ./scripts/update-jormungandr-public-ids.rb");
   };
-  systemd.services.jormungandr.serviceConfig.MemoryMax = "7G";
 
+  systemd.services.jormungandr = {
+    serviceConfig = {
+      MemoryMax = "7G";
+      Restart = lib.mkForce "no";
+    };
+  };
 
   networking.firewall.allowedTCPPorts = [ 3000 ];
 
@@ -70,6 +75,7 @@ in {
 
   services.jormungandr-monitor = {
     enable = true;
+    jcliPackage = pkgs.jormungandrEnv.packages.jcli;
     genesisYaml =
       if (builtins.pathExists ../static/genesis.yaml)
       then ../static/genesis.yaml

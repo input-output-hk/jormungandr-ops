@@ -5,10 +5,10 @@
         "homepage": null,
         "owner": "input-output-hk",
         "repo": "iohk-nix",
-        "rev": "73f4be438884b642c8f660def9f0029268f076d3",
-        "sha256": "1i0h4jw09rflpanm6k3g5kb8r8ydrhf7ccsv4wx821q8slvf54bg",
+        "rev": "7593b7f0ea53e36ae8d425dbcd7bc70a67090132",
+        "sha256": "0np8vcy7kjwflddnwyr8q23smj5nazik3m4m4wh564bc3acjpapl",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/iohk-nix/archive/73f4be438884b642c8f660def9f0029268f076d3.tar.gz",
+        "url": "https://github.com/input-output-hk/iohk-nix/archive/7593b7f0ea53e36ae8d425dbcd7bc70a67090132.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "iohk-ops": {
@@ -36,15 +36,15 @@
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "jormungandr-nix": {
-        "branch": "master",
+        "branch": "0.8.0-rc9",
         "description": "jormungandr nix scripts",
         "homepage": null,
         "owner": "input-output-hk",
         "repo": "jormungandr-nix",
-        "rev": "981c55092bed38d7ebe70a54cf95799ad2da60ea",
-        "sha256": "1ljpygrmbma3k6fkvq0xrdjakmj77401fibcbzxxn8banspc6si5",
+        "rev": "f163c5502b6caaf1c81ec1324e3d57f841f9211a",
+        "sha256": "1ly8xy7dlmhj7fp8iism676y9a0gswhd3hg08dxrgr78m1ziw79k",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/jormungandr-nix/archive/981c55092bed38d7ebe70a54cf95799ad2da60ea.tar.gz",
+        "url": "https://github.com/input-output-hk/jormungandr-nix/archive/f163c5502b6caaf1c81ec1324e3d57f841f9211a.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "niv": {

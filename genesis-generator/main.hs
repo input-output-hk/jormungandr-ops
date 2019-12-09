@@ -36,7 +36,7 @@ data Genesis = Genesis
   } deriving Generic
 
 data BlockchainConfig = BlockchainConfig
-  { bftSlotsRatio :: Int
+  { blockContentMaxSize :: Int
   , block0Consensus :: T.Text --  = "genesis_praos";
   , block0Date :: Int
   , consensusGenesisPraosActiveSlotCoeff :: Float
@@ -45,10 +45,10 @@ data BlockchainConfig = BlockchainConfig
   , epoch_stability_depth :: Int
   , kesUpdateSpeed :: Int
   , linearFees :: LinearFees
-  , maxNumberOfTransactionsPerBlock :: Int
   , slotDuration :: Int
   , slotsPerEpoch :: Int
   , treasury :: Int
+  , treasuryParameters :: TreasuryParameters
   , totalRewardSupply :: Int
   , rewardParameters :: RewardParameters
   } deriving (Show, Generic)
@@ -91,10 +91,14 @@ data PerCertificateFees = PerCertificateFees
   }
 
 data RewardParameters = RewardParameters
-  { halving :: RewardParametersHalving
+  { linear :: RewardParametersLinear
+  } deriving (Show, Generic)
+data TreasuryParameters = TreasuryParameters
+  { treasuryFixed :: Int
+  , treasuryRatio :: T.Text
   } deriving (Show, Generic)
 
-data RewardParametersHalving = RewardParametersHalving
+data RewardParametersLinear = RewardParametersHalving
   { rewardConstant :: Int
   , ratio :: T.Text
   , epochStart :: Int
@@ -117,6 +121,8 @@ customOptions = defaultOptions { fieldLabelModifier = modifyFieldLabel }
 
 modifyFieldLabel :: String -> String
 modifyFieldLabel "rewardConstant" = "constant"
+modifyFieldLabel "treasuryFixed" = "fixed"
+modifyFieldLabel "treasuryRatio" = "ratio"
 modifyFieldLabel a = camelTo2 '_' a
 
 instance FromJSON InputConfig where
@@ -153,17 +159,23 @@ instance ToJSON LinearFees where
 instance FromJSON LinearFees where
   parseJSON = genericParseJSON customOptions
 
+instance ToJSON TreasuryParameters where
+  toJSON = genericToJSON customOptions
+
+instance FromJSON TreasuryParameters where
+  parseJSON = genericParseJSON customOptions
+
 instance ToJSON RewardParameters where
   toJSON = genericToJSON customOptions
 
 instance FromJSON RewardParameters where
   parseJSON = genericParseJSON customOptions
 
-instance ToJSON RewardParametersHalving where
+instance ToJSON RewardParametersLinear where
   toJSON = genericToJSON customOptions
 
-instance FromJSON RewardParametersHalving where
-  parseJSON = withObject "RewardParametersHalving" $ \o -> RewardParametersHalving
+instance FromJSON RewardParametersLinear where
+  parseJSON = withObject "RewardParametersLinear" $ \o -> RewardParametersHalving
     <$> o .: "constant"
     <*> o .: "ratio"
     <*> o .: "epoch_start"
@@ -300,7 +312,7 @@ generateStakePool = do
   kesPublic <- secretToPublic kesSecret
   leaderAddress <- publicToAddress leaderPublic
   let
-    cmd = format ("jcli certificate new stake-pool-registration --kes-key "%s%" --vrf-key "%s%" --owner "%s%" --management-threshold 1 --start-validity 0") (unPublic kesPublic) (unPublic vrfPublic) (unPublic leaderPublic)
+    cmd = format ("jcli certificate new stake-pool-registration --kes-key "%s%" --vrf-key "%s%" --owner "%s%" --management-threshold 1 --start-validity 0 --tax-ratio '1/10' --tax-fixed 10000000") (unPublic kesPublic) (unPublic vrfPublic) (unPublic leaderPublic)
   certRegistration <- Certificate . lineToText <$> single (sh cmd empty)
   signedCertificate <- signCertificate certRegistration leaderSecret
   stakePoolId <- getPoolId signedCertificate

@@ -1,38 +1,40 @@
 let
   ada = n: n * 1000000; # lovelace
   blockchainConfigDefaults = {
-    bft_slots_ratio = 0;
     block0_consensus = "genesis_praos";
+    discrimination = "test";
+    block_content_max_size = 1024000;
     block0_date = __currentTime;
     consensus_genesis_praos_active_slot_coeff = 0.1;
     consensus_leader_ids = [];
-    discrimination = "test";
     epoch_stability_depth = 10;
     kes_update_speed = 86400;
     linear_fees = {
-      certificate = 10000;
-      coefficient = 50;
-      constant = 1000;
+      constant = 200000;
+      coefficient = 100000;
+      certificate = 400000;
+      per_certificate_fees = {
+        certificate_pool_registration = ada 500;
+        certifcate_stake_delegation = 400000;
+      };
     };
-    max_number_of_transactions_per_block = 255;
     slot_duration = 2;
     slots_per_epoch = 7200;
 
     treasury = 0;
-
     treasury_parameters = {
-      fixed = 1000;
+      fixed = 0;
       ratio = "1/10";
     };
 
-    total_reward_supply = ada 10000000;
+    total_reward_supply = 701917808520000;
 
     reward_parameters = {
-      halving = {
-        constant = 100;
-        ratio = "13/19";
+      linear = {
+        constant = 3835616440000;
+        ratio = "0/1";
         epoch_start = 1;
-        epoch_rate = 3;
+        epoch_rate = 1;
       };
     };
   };
@@ -59,6 +61,7 @@ let
 
 in lib.fix (self: {
   inherit (pkgs.jormungandrEnv.packages) jcli jormungandr;
+  inherit inputConfig;
   ghc = pkgs.haskellPackages.ghcWithPackages (ps: with ps; [ aeson turtle split ]);
   genesis-generator = pkgs.runCommand "genesis-generator" {
     buildInputs = [ self.ghc self.jcli pkgs.haskellPackages.ghcid ];
