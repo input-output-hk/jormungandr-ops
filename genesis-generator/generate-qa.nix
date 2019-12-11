@@ -6,7 +6,6 @@ let
   readFile = file: (__replaceStrings ["\n"] [""] (__readFile file));
   extraBlockchainConfig = {
     slots_per_epoch = 750;
-    fees_go_to = "rewards";
   };
 
   inputParams = {

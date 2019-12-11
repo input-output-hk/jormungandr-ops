@@ -2,6 +2,7 @@ let
   ada = n: n * 1000000; # lovelace
   blockchainConfigDefaults = {
     block0_consensus = "genesis_praos";
+    fees_go_to = "treasury";
     discrimination = "test";
     block_content_max_size = 1024000;
     block0_date = __currentTime;

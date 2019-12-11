@@ -43,6 +43,7 @@ data BlockchainConfig = BlockchainConfig
   , consensusLeaderIds :: [PublicKey]
   , discrimination :: T.Text -- "test";
   , epoch_stability_depth :: Int
+  , feesGoTo :: T.Text
   , kesUpdateSpeed :: Int
   , linearFees :: LinearFees
   , slotDuration :: Int
