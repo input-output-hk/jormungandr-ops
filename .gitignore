@@ -6,3 +6,5 @@ stats/
 backup/
 *.swp
 result*
+static*
+/dpl-*
