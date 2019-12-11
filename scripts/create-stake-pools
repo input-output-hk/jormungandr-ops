@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+function create_wallet_keys () {
+  PREFIX=$1
+  NUM=$2
+  ../../scripts/create-wallet-keys.sh -n 6 -p "${PREFIX}_owner_wallet_"
+}
+
+function setup_stake () {
+  PREFIX=$1
+  INDEX=$2
+  TAX_RATIO=$3
+  TAX_FIXED=$4
+  STAKEPOOL_NAME=$5
+  TICKER=$6
+  URL=$7
+  jcli key to-public < "${PREFIX}_owner_wallet_${INDEX}.sk" > "${PREFIX}_owner_wallet_${INDEX}.pub"
+  jcli address account "$(cat "${PREFIX}_owner_wallet_${INDEX}.pub")" --testing > "${PREFIX}_owner_wallet_${INDEX}.address"
+
+  jcli key generate --type=SumEd25519_12 > "${PREFIX}_${INDEX}_kes.sk"
+  jcli key to-public < "${PREFIX}_${INDEX}_kes.sk" > "${PREFIX}_${INDEX}_kes.pub"
+  jcli key generate --type=Curve25519_2HashDH > "${PREFIX}_${INDEX}_vrf.sk"
+  jcli key to-public < "${PREFIX}_${INDEX}_vrf.sk" > "${PREFIX}_${INDEX}_vrf.pub"
+
+  jcli certificate new stake-pool-registration \
+  --kes-key "$(cat "${PREFIX}_${INDEX}_kes.pub")" \
+  --vrf-key "$(cat "${PREFIX}_${INDEX}_vrf.pub")" \
+  --owner "$(cat "${PREFIX}_owner_wallet_${INDEX}.pub")" \
+  --management-threshold 1 \
+  --tax-ratio "${TAX_RATIO}" \
+  --tax-fixed "${TAX_FIXED}" \
+  --start-validity 0 > "${PREFIX}_${INDEX}.cert"
+  jcli certificate sign -k "${PREFIX}_owner_wallet_${INDEX}.sk" < "${PREFIX}_${INDEX}.cert" > "${PREFIX}_${INDEX}.signcert"
+  jcli certificate get-stake-pool-id < "${PREFIX}_${INDEX}.signcert" > "${PREFIX}_${INDEX}.id"
+  NODEID="$(cat "${PREFIX}_${INDEX}.id")"
+  VRFKEY="$(cat "${PREFIX}_${INDEX}_vrf.sk")"
+  KESKEY="$(cat "${PREFIX}_${INDEX}_kes.sk")"
+  OWNER_WALLET_PUB_STR="$(cat "${PREFIX}_owner_wallet_${INDEX}.pub")"
+  jq -n ".genesis.node_id = \"$NODEID\" | .genesis.vrf_key = \"$VRFKEY\" | .genesis.sig_key = \"$KESKEY\"" > "${PREFIX}-secret-${INDEX}.yaml"
+  jq -n ".owner = \"${OWNER_WALLET_PUB_STR}\" | .name = \"${STAKEPOOL_NAME}\" | .ticker = \"${TICKER}\" | .homepage = \"${URL}\" | .pledge_address = \"$(cat "${PREFIX}_owner_wallet_${INDEX}.address")\"" > "${OWNER_WALLET_PUB_STR}.json"
+  ln -s "${OWNER_WALLET_PUB_STR}.json" "${PREFIX}_${INDEX}.json"
+  jcli key sign --secret-key "${PREFIX}_owner_wallet_${INDEX}.sk" --output "${OWNER_WALLET_PUB_STR}.sig" "${OWNER_WALLET_PUB_STR}.json"
+  ln -s "${OWNER_WALLET_PUB_STR}.sig" "${PREFIX}_${INDEX}.sig"
+  echo "Upload ./${OWNER_WALLET_PUB_STR}.json and ./${OWNER_WALLET_PUB_STR}.sig to the stake pool registry"
+  echo "Stake pool secrets created and stored in ./${PREFIX}-secret-${INDEX}.yaml"
+  echo "The certificate ./${PREFIX}_${INDEX}.signcert needs to be submitted to network using send-certificate"
+  jcli certificate new stake-delegation \
+    "${OWNER_WALLET_PUB_STR}" \
+    "${NODEID}" > "${PREFIX}_${INDEX}_stake_delegation.cert"
+  jcli certificate sign -k "${PREFIX}_owner_wallet_${INDEX}.sk" < "${PREFIX}_${INDEX}_stake_delegation.cert" > "${PREFIX}_${INDEX}_stake_delegation.signcert"
+  echo "Your delegation certificate is at ${PREFIX}_${INDEX}_stake_delegation.signcert."
+}
+
+create_wallet_keys iohk 6
+setup_stake iohk 1 "100/100" 0 IOHK1 IOHK1 https://iohk.io
+setup_stake iohk 2 "100/100" 0 IOHK2 IOHK2 https://iohk.io
+setup_stake iohk 3 "8/100" 0 IOHK3 IOHK3 https://iohk.io
+setup_stake iohk 4 "10/100" 0 IOHK4 IOHK4 https://iohk.io
+setup_stake iohk 5 "12/100" 0 IOHK5 IOHK5 https://iohk.io
+setup_stake iohk 6 "16/100" 0 IOHK6 IOHK6 https://iohk.io
+exit 0

@@ -4,6 +4,7 @@ pkgs.mkShell {
     sqliteInteractive
     cacert
     crystal
+    expect
     jormungandrEnv.packages.jcli
     niv
     nixops
@@ -11,5 +12,6 @@ pkgs.mkShell {
     zip
     delegateStake
     createStakePool
+    cardano-wallet-jormungandr
   ];
 }

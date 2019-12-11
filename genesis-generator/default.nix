@@ -12,7 +12,7 @@ let
     linear_fees = {
       constant = 200000;
       coefficient = 100000;
-      certificate = 400000;
+      certificate = 10000;
       per_certificate_fees = {
         certificate_pool_registration = ada 500;
         certifcate_stake_delegation = 400000;
