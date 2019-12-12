@@ -11,7 +11,6 @@ in {
   imports = [ ./aws.nix ./monitoring-exporters.nix ];
 
   networking.hostName = name;
-  networking.privateIPv4 = lib.mkForce config.node.wireguardIP;
 
   environment.systemPackages = with pkgs; [
     bat

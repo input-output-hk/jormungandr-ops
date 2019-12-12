@@ -64,6 +64,7 @@ data LinearFees = LinearFees
   { certificate :: Int
   , coefficient :: Int
   , constant :: Int
+  , perCertificateFees :: PerCertificateFees
   } deriving (Show, Generic)
 
 data StakePool = StakePool
@@ -88,8 +89,8 @@ data StakePoolSecret = StakePoolSecret
 data PerCertificateFees = PerCertificateFees
   { certificatePoolRegistration :: Int
   , certificateStakeDelegation :: Int
-  , certificateOwnerStakeDelegation :: Int
-  }
+  , certificateOwnerStakeDelegation :: Maybe Int
+  } deriving (Show, Generic)
 
 data RewardParameters = RewardParameters
   { linear :: RewardParametersLinear
@@ -159,6 +160,12 @@ instance ToJSON LinearFees where
 
 instance FromJSON LinearFees where
   parseJSON = genericParseJSON customOptions
+
+instance FromJSON PerCertificateFees where
+  parseJSON = genericParseJSON customOptions
+
+instance ToJSON PerCertificateFees where
+  toJSON = genericToJSON customOptions
 
 instance ToJSON TreasuryParameters where
   toJSON = genericToJSON customOptions

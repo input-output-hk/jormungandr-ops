@@ -30,7 +30,7 @@ in {
     jormungandrApi = "http://${config.services.jormungandr.rest.listenAddress}/api";
     secondsBetweenRequests = 24 * 60 * 60;
     secretKeyPath = "/run/keys/faucet.sk";
-    jormungandrCliPackage = config.services.jormungandr.jcliPackage;
+    jormungandrCliPackage = pkgs.jormungandrEnv.packages.jcli;
   };
 
   systemd.services."jormungandr-faucet" = {

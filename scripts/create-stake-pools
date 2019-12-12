@@ -53,10 +53,10 @@ function setup_stake () {
 }
 
 create_wallet_keys iohk 6
-setup_stake iohk 1 "100/100" 0 IOHK1 IOHK1 https://iohk.io
-setup_stake iohk 2 "100/100" 0 IOHK2 IOHK2 https://iohk.io
-setup_stake iohk 3 "8/100" 0 IOHK3 IOHK3 https://iohk.io
-setup_stake iohk 4 "10/100" 0 IOHK4 IOHK4 https://iohk.io
-setup_stake iohk 5 "12/100" 0 IOHK5 IOHK5 https://iohk.io
-setup_stake iohk 6 "16/100" 0 IOHK6 IOHK6 https://iohk.io
+setup_stake iohk 1 "100/100" 0 "IOHK Private - 1" IOHK1 https://iohk.io
+setup_stake iohk 2 "100/100" 0 "IOHK Private - 2" IOHK2 https://iohk.io
+setup_stake iohk 3 "8/100" 0 "IOHK Public - 3" IOHK3 https://iohk.io
+setup_stake iohk 4 "10/100" 0 "IOHK Public - 4" IOHK4 https://iohk.io
+setup_stake iohk 5 "12/100" 0 "IOHK Public - 5" IOHK5 https://iohk.io
+setup_stake iohk 6 "16/100" 0 "IOHK Public - 6" IOHK6 https://iohk.io
 exit 0

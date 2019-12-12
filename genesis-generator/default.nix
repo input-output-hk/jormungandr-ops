@@ -16,7 +16,7 @@ let
       certificate = 10000;
       per_certificate_fees = {
         certificate_pool_registration = ada 500;
-        certifcate_stake_delegation = 400000;
+        certificate_stake_delegation = 400000;
       };
     };
     slot_duration = 2;

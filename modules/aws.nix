@@ -85,7 +85,12 @@ in {
 
           isRelay = mkOption {
             type = bool;
-            default = cfg.isFaucet || cfg.isExplorer;
+            default = cfg.isFaucet || cfg.isExplorer || cfg.isTrustedPeer;
+          };
+
+          isTrustedPeer = mkOption {
+            type = bool;
+            default = false;
           };
 
           isStake = mkOption {

@@ -9,7 +9,7 @@ let
 
   compact = l: filter (e: e != null) l;
   peerAddress = nodeName: node:
-    if node.config.node.isRelay && (nodeName != name) then
+    if node.config.node.isTrustedPeer && (nodeName != name) then
       {
         address = node.config.services.jormungandr.publicAddress;
         id = publicIds.${nodeName};

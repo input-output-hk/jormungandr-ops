@@ -17,7 +17,7 @@ in rec {
 
   stakes = filterAttrs (name: node: node.node.isStake or false) machines;
   relays = filterAttrs (name: node:
-    node.node.isRelay or node.node.isExplorer or node.node.isFaucet or false)
+    node.node.isTrustedPeer or node.node.isRelay or node.node.isExplorer or node.node.isFaucet or false)
     machines;
 
   allNames = __attrNames all;

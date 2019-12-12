@@ -25,15 +25,15 @@ in {
 
   networking.wg-quick.interfaces.wg0 = {
     inherit listenPort;
-    address = [ "${config.node.wireguardIP}/16" ];
+    address = [ "${config.node.wireguardIP}/24" ];
     privateKeyFile = "/run/keys/${uniqueKey}";
 
     peers = [
       {
-        allowedIPs = [ "10.90.0.0/16" ];
+        allowedIPs = [ "${nodes.monitoring.config.node.wireguardIP}/32" ];
         publicKey = lib.fileContents ../secrets/wireguard/monitoring.public;
         presharedKeyFile = "/run/keys/${sharedKey}";
-        endpoint = "monitoring:${toString listenPort}";
+        endpoint = "monitoring-ip:${toString listenPort}";
         persistentKeepalive = 25;
       }
     ];

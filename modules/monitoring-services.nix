@@ -326,13 +326,13 @@ in {
 
       networking.wg-quick.interfaces.wg0 = {
         listenPort = 17777;
-        address = [ "${config.node.wireguardIP}/16" ];
+        address = [ "${config.node.wireguardIP}/24" ];
         privateKeyFile = "/run/keys/wg_${name}";
 
         # TODO: remove monitoring from this list
         peers = mapAttrsToList (nodeName: node:
           {
-            allowedIPs = [ "${node.config.node.wireguardIP}/16" ];
+            allowedIPs = [ "${node.config.node.wireguardIP}/32" ];
             publicKey = lib.fileContents (../. + "/secrets/wireguard/${nodeName}.public");
             presharedKeyFile = "/run/keys/wg_shared";
             persistentKeepalive = 25;
