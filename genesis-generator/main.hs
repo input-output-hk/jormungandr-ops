@@ -52,6 +52,7 @@ data BlockchainConfig = BlockchainConfig
   , treasuryParameters :: TreasuryParameters
   , totalRewardSupply :: Int
   , rewardParameters :: RewardParameters
+  , rewardConstraints :: RewardContraints
   } deriving (Show, Generic)
 
 instance FromJSON BlockchainConfig where
@@ -59,6 +60,11 @@ instance FromJSON BlockchainConfig where
 
 instance ToJSON BlockchainConfig where
   toJSON = genericToJSON customOptions
+
+data PoolParticipationCapping = PoolParticipationCapping
+  { poolParticipationCappingMin :: Int
+  , poolParticipationCappingMax :: Int
+  } deriving (Show, Generic)
 
 data LinearFees = LinearFees
   { certificate :: Int
@@ -92,9 +98,15 @@ data PerCertificateFees = PerCertificateFees
   , certificateOwnerStakeDelegation :: Maybe Int
   } deriving (Show, Generic)
 
+data RewardContraints = RewardContraints
+  { rewardDrawingLimitMax :: T.Text
+  , poolParticipationCapping :: PoolParticipationCapping
+  } deriving (Show, Generic)
+
 data RewardParameters = RewardParameters
   { linear :: RewardParametersLinear
   } deriving (Show, Generic)
+
 data TreasuryParameters = TreasuryParameters
   { treasuryFixed :: Int
   , treasuryRatio :: T.Text
@@ -125,6 +137,8 @@ modifyFieldLabel :: String -> String
 modifyFieldLabel "rewardConstant" = "constant"
 modifyFieldLabel "treasuryFixed" = "fixed"
 modifyFieldLabel "treasuryRatio" = "ratio"
+modifyFieldLabel "poolParticipationCappingMin" = "min"
+modifyFieldLabel "poolParticipationCappingMax" = "max"
 modifyFieldLabel a = camelTo2 '_' a
 
 instance FromJSON InputConfig where
@@ -173,11 +187,23 @@ instance ToJSON TreasuryParameters where
 instance FromJSON TreasuryParameters where
   parseJSON = genericParseJSON customOptions
 
+instance FromJSON RewardParameters where
+  parseJSON = genericParseJSON customOptions
+
 instance ToJSON RewardParameters where
   toJSON = genericToJSON customOptions
 
-instance FromJSON RewardParameters where
+instance FromJSON PoolParticipationCapping where
   parseJSON = genericParseJSON customOptions
+
+instance ToJSON PoolParticipationCapping where
+  toJSON = genericToJSON customOptions
+
+instance FromJSON RewardContraints where
+  parseJSON = genericParseJSON customOptions
+
+instance ToJSON RewardContraints where
+  toJSON = genericToJSON customOptions
 
 instance ToJSON RewardParametersLinear where
   toJSON = genericToJSON customOptions

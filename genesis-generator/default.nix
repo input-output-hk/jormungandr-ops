@@ -38,6 +38,14 @@ let
         epoch_rate = 1;
       };
     };
+
+    reward_constraints = {
+      reward_drawing_limit_max = "15/100";
+      pool_participation_capping = {
+        min = 100;
+        max = 100;
+      };
+    };
   };
 in {
   stakePoolCount ? 7

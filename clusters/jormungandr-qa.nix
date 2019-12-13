@@ -113,21 +113,21 @@ let
       amount = 3;
       imports = [ tiny ../roles/jormungandr-relay.nix ];
       deployment.ec2.region = "us-west-1";
-      node.isRelay = true;
+      node.isTrustedPeer = true;
     };
 
     relay-b = {
       amount = 2;
       imports = [ tiny ../roles/jormungandr-relay.nix ];
       deployment.ec2.region = "ap-northeast-1";
-      node.isRelay = true;
+      node.isTrustedPeer = true;
     };
 
     relay-c = {
       amount = 2;
       imports = [ tiny ../roles/jormungandr-relay.nix ];
       deployment.ec2.region = "eu-central-1";
-      node.isRelay = true;
+      node.isTrustedPeer = true;
     };
 
     qa = {
