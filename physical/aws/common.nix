@@ -1,5 +1,7 @@
-{ lib ? import ../nix { }, globals ? import ../globals.nix, cluster, ... }:
+{ pkgs ? import ../../nix { }, globals ? import ../../globals.nix, cluster, ...
+}:
 let
+  inherit (pkgs) lib;
   inherit (lib)
     attrValues foldl' mapAttrs' nameValuePair recursiveUpdate unique
     filterAttrs;
@@ -11,14 +13,8 @@ let
 
   regions = unique (map (node: node.deployment.ec2.region) (attrValues nodes));
 
-  securityGroupFiles = [
-    ./security-groups/allow-all.nix
-    ./security-groups/allow-deployer-ssh.nix
-    ./security-groups/allow-monitoring-collection.nix
-    ./security-groups/allow-public-www-https.nix
-    ./security-groups/allow-jormungandr.nix
-    ./security-groups/allow-graylog-nodes.nix
-  ];
+  securityGroupFiles = let dir = ./security-groups;
+  in map (n: dir + "/${n}") (__attrNames (builtins.readDir dir));
 
   importSecurityGroup = region: file:
     import file { inherit accessKeyId lib region nodes; };

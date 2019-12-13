@@ -6,34 +6,37 @@ require "option_parser"
 require "file_utils"
 
 class Deployer
-  record Config,
-    delete_state = false,
-    skip_backup = false,
-    skip_nixops = false,
-    skip_copy = false,
-    skip_healthcheck = false,
-    restore_backup = false,
-    since_time : String = 6.hours.ago.to_s,
-    until_time : String = Time.utc.to_s
+  class Config
+    property? delete_state = false,
+              skip_backup = false,
+              skip_nixops = false,
+              skip_copy = false,
+              skip_healthcheck = false,
+              restore_backup = false
+    property since_time : String = 6.hours.ago.to_s,
+             until_time : String = Time.utc.to_s
+  end
 
   @nodes  = [] of Node::Any
   @config = Config.new
 
   def parse_options
+    config = @config
+
     OptionParser.parse! do |parser|
       parser.banner = "Usage: ./scripts/dpl-qa.cr [arguments]"
 
-      parser.on "--delete-state", "Delete state on all nodes" { @config = @config.copy_with delete_state: true }
-      parser.on "--skip-backup", "Don't backup state" { @config = @config.copy_with skip_backup: true }
-      parser.on "--skip-nixops", "Don't run nixops deploy" { @config = @config.copy_with skip_nixops: true }
-      parser.on "--skip-copy", "Don't run nixops copy" { @config = @config.copy_with skip_copy: true }
-      parser.on "--skip-healthcheck", "Don't wait for healthcheck to pass" { @config = @config.copy_with skip_healthcheck: true }
-      parser.on "--restore-backup", "restore backup before start" { @config = @config.copy_with restore_backup: true }
-      parser.on "--all", "Deploy all nodes" { @nodes = all_nodes }
-      parser.on "--stakes", "Deploy stake nodes" { @nodes = stakes }
-      parser.on "--relays", "Deploy relays nodes" { @nodes = relays }
-      parser.on "--since=TIME", "Time from which logs are backed up" { |time| @config = @config.copy_with since_time: time }
-      parser.on "--until=TIME", "Time until which logs are backed up" { |time| @config = @config.copy_with until_time: time }
+      parser.on "--delete-state", "Delete state on all nodes" { config.delete_state = true }
+      parser.on "--skip-backup", "Don't backup state" { config.skip_backup = true }
+      parser.on "--skip-nixops", "Don't run nixops deploy" { config.skip_nixops = true }
+      parser.on "--skip-copy", "Don't run nixops copy" { config.skip_copy = true }
+      parser.on "--skip-healthcheck", "Don't wait for healthcheck to pass" { config.skip_healthcheck = true }
+      parser.on "--restore-backup", "restore backup before start" { config.restore_backup = true }
+      parser.on "--all", "Deploy all nodes" { nodes = all_nodes }
+      parser.on "--stakes", "Deploy stake nodes" { nodes = stakes }
+      parser.on "--relays", "Deploy relays nodes" { nodes = relays }
+      parser.on "--since=TIME", "Time from which logs are backed up" { |time| config.since_time = time }
+      parser.on "--until=TIME", "Time until which logs are backed up" { |time| config.until_time = time }
 
       parser.invalid_option do |flag|
         STDERR.puts "ERROR: #{flag} is not a valid option."
@@ -59,7 +62,7 @@ class Deployer
 
     puts "deploying to: ", nodes_to_deploy.map(&.name).join(" ")
 
-    if @config.skip_healthcheck
+    if @config.skip_healthcheck?
       nodes_to_deploy.each &.deploy(nil, @config)
       return
     end
@@ -112,12 +115,12 @@ class Deployer
   end
 
   def copy_only
-    return if @config.skip_copy
+    return if @config.skip_copy?
     system("nixops", ["deploy", "--copy-only"]) || raise("Failed copying")
   end
 
   def backup_all
-    return if @config.skip_backup
+    return if @config.skip_backup?
 
     results = Channel(Node::Name).new
     all_nodes.each do |node|
@@ -133,7 +136,7 @@ class Deployer
   end
 
   def restore_backup_all
-    return unless @config.restore_backup
+    return unless @config.restore_backup?
 
     results = Channel(Node::Name).new
     all_nodes.each do |node|
@@ -188,9 +191,9 @@ abstract class Node
   end
 
   def deploy(highest_stake : Nil, config)
-    cleanup if config.delete_state
+    cleanup if config.delete_state?
 
-    if config.skip_nixops
+    if config.skip_nixops?
       start_jormungandr
     else
       nixops_deploy
@@ -198,15 +201,15 @@ abstract class Node
   end
 
   def deploy(highest_stake : Node, config)
-    cleanup if config.delete_state
+    cleanup if config.delete_state?
 
-    if config.skip_nixops
+    if config.skip_nixops?
       start_jormungandr
     else
       nixops_deploy
     end
 
-    healthcheck(highest_stake) unless config.skip_healthcheck
+    healthcheck(highest_stake) unless config.skip_healthcheck?
   end
 
   def backup

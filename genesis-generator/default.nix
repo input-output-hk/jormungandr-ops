@@ -40,7 +40,7 @@ let
     };
 
     reward_constraints = {
-      reward_drawing_limit_max = "15/100";
+      reward_drawing_limit_max = "4109589/10000000000";
       pool_participation_capping = {
         min = 100;
         max = 100;
