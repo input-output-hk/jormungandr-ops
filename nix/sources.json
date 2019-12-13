@@ -12,15 +12,15 @@
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "iohk-nix": {
-        "branch": "jormungandr-0.8.1",
+        "branch": "master",
         "description": "nix scripts shared across projects",
         "homepage": null,
         "owner": "input-output-hk",
         "repo": "iohk-nix",
-        "rev": "8f7515fbf0a4c9adad5be9d6cd25084250783d47",
-        "sha256": "14y3baa5y4z5lrkx4k23xnxdzd92i4jkjjcx45gj73jvdn5rscn8",
+        "rev": "1b1a44324eae24b97f9ecb336e560b2a3e446d24",
+        "sha256": "19fsxl63ngbi04snmwpxnaj7gir3ygna1iab75q8c7lsanax8s4z",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/iohk-nix/archive/8f7515fbf0a4c9adad5be9d6cd25084250783d47.tar.gz",
+        "url": "https://github.com/input-output-hk/iohk-nix/archive/1b1a44324eae24b97f9ecb336e560b2a3e446d24.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "iohk-ops": {

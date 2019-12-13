@@ -32,9 +32,9 @@ class Deployer
       parser.on "--skip-copy", "Don't run nixops copy" { config.skip_copy = true }
       parser.on "--skip-healthcheck", "Don't wait for healthcheck to pass" { config.skip_healthcheck = true }
       parser.on "--restore-backup", "restore backup before start" { config.restore_backup = true }
-      parser.on "--all", "Deploy all nodes" { nodes = all_nodes }
-      parser.on "--stakes", "Deploy stake nodes" { nodes = stakes }
-      parser.on "--relays", "Deploy relays nodes" { nodes = relays }
+      parser.on "--all", "Deploy all nodes" { @nodes = pp! all_nodes }
+      parser.on "--stakes", "Deploy stake nodes" { @nodes = stakes }
+      parser.on "--relays", "Deploy relays nodes" { @nodes = relays }
       parser.on "--since=TIME", "Time from which logs are backed up" { |time| config.since_time = time }
       parser.on "--until=TIME", "Time until which logs are backed up" { |time| config.until_time = time }
 
