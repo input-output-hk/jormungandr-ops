@@ -15,7 +15,7 @@ let
     inherit amount;
     imports = [ medium ../roles/jormungandr-relay.nix ];
     deployment.ec2.region = region;
-    node.isRelay = true;
+    node.isTrustedPeer = true;
   };
 
   nodes = mkNodes {

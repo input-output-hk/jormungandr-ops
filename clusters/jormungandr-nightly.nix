@@ -9,7 +9,7 @@ let
       imports = [ large ../roles/jormungandr-relay.nix ];
       inherit amount;
       deployment.ec2.region = region;
-      node.isRelay = true;
+      node.isTrustedPeer = true;
     }) {
       eu-central-1 = 3;
       ap-northeast-1 = 2;
