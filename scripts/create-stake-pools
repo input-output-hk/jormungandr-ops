@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+DIR=$(dirname -- "$0")
+
 function create_wallet_keys () {
   PREFIX=$1
   NUM=$2
-  ../../scripts/create-wallet-keys.sh -n 6 -p "${PREFIX}_owner_wallet_"
+  "${DIR}/create-wallet-keys.sh" -n "${NUM}" -p "${PREFIX}_owner_wallet_"
 }
 
 function setup_stake () {
@@ -52,11 +54,19 @@ function setup_stake () {
   echo "Your delegation certificate is at ${PREFIX}_${INDEX}_stake_delegation.signcert."
 }
 
+function make_tarball () {
+  echo -e "\nMaking operator.tar.gz file"
+  tar -zcf operator.tar.gz ./*.sig ./*.json ./*.pub ./*.address ./*.yaml ./*.id ./*.signcert
+  echo "Done!"
+}
+
 create_wallet_keys iohk 6
-setup_stake iohk 1 "100/100" 0 "IOHK Private - 1" IOHK1 https://iohk.io
-setup_stake iohk 2 "100/100" 0 "IOHK Private - 2" IOHK2 https://iohk.io
-setup_stake iohk 3 "8/100" 0 "IOHK Public - 3" IOHK3 https://iohk.io
-setup_stake iohk 4 "10/100" 0 "IOHK Public - 4" IOHK4 https://iohk.io
-setup_stake iohk 5 "12/100" 0 "IOHK Public - 5" IOHK5 https://iohk.io
-setup_stake iohk 6 "16/100" 0 "IOHK Public - 6" IOHK6 https://iohk.io
+setup_stake iohk 1 "2/25" 258251123 "IOHK Stakepool" IOHK1 https://staking.cardano.org
+setup_stake iohk 2 "1/10" 258251123 "IOHK Stakepool" IOHK2 https://staking.cardano.org
+setup_stake iohk 3 "3/25" 258251123 "IOHK Stakepool" IOHK3 https://staking.cardano.org
+setup_stake iohk 4 "7/50" 258251123 "IOHK Stakepool" IOHK4 https://staking.cardano.org
+setup_stake iohk 5 "1/1" 258251123 "IOHK Private Stakepool" IOHK5 https://staking.cardano.org
+setup_stake iohk 6 "1/1" 258251123 "IOHK Private Stakepool" IOHK6 https://staking.cardano.org
+
+make_tarball
 exit 0
