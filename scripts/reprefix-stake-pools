@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+function reprefix () {
+  PREFIX=$1
+  INDEX=$2
+  STAKEPOOL_NAME=$3
+  TICKER=$4
+  URL=$5
+  jcli address account --prefix addr "$(cat "${PREFIX}_owner_wallet_${INDEX}.pub")" --testing > "${PREFIX}_owner_wallet_${INDEX}.address"
+
+  OWNER_WALLET_PUB_STR="$(cat "${PREFIX}_owner_wallet_${INDEX}.pub")"
+  jq -n ".owner = \"${OWNER_WALLET_PUB_STR}\" | .name = \"${STAKEPOOL_NAME}\" | .ticker = \"${TICKER}\" | .homepage = \"${URL}\" | .pledge_address = \"$(cat "${PREFIX}_owner_wallet_${INDEX}.address")\"" > "${OWNER_WALLET_PUB_STR}.json"
+  jcli key sign --secret-key "${PREFIX}_owner_wallet_${INDEX}.sk" --output "${OWNER_WALLET_PUB_STR}.sig" "${OWNER_WALLET_PUB_STR}.json"
+  echo "The address in file ${PREFIX}_owner_wallet_${INDEX}.address has been re-prefixed and json and sig file regenerated"
+}
+
+function make_reprefix_tarball () {
+  echo -e "\nMaking reprefix-operator.tar.gz file"
+  tar -zcf reprefix-operator.tar.gz ./*.sig ./*.json ./*.pub ./*.address ./*.yaml ./*.id ./*.signcert
+  echo "Done!"
+}
+
+reprefix iohk 1 "IOHK Stakepool" IOHK1 https://staking.cardano.org
+reprefix iohk 2 "IOHK Stakepool" IOHK2 https://staking.cardano.org
+reprefix iohk 3 "IOHK Stakepool" IOHK3 https://staking.cardano.org
+reprefix iohk 4 "IOHK Stakepool" IOHK4 https://staking.cardano.org
+reprefix iohk 5 "IOHK Private Stakepool" IOHK5 https://staking.cardano.org
+reprefix iohk 6 "IOHK Private Stakepool" IOHK6 https://staking.cardano.org
+
+make_reprefix_tarball
+exit 0
