@@ -5,8 +5,6 @@ let
     range listToAttrs mapAttrsToList nameValuePair foldl forEach filterAttrs
     recursiveUpdate;
 
-  pp = v: __trace (__toJSON v) v;
-
   # defs: passed from clusters/jormungandr-$CLUSTER.nix as the node defs
   mkNodes = defs:
     listToAttrs (foldl foldNodes {
@@ -77,7 +75,7 @@ let
   addStakeKey = stakeKeys: elem:
     if elem.value.node.isStake && !(elem.value.node.dontGenerateKey or false) then {
       nodes = [ (addDeploymentKey elem (nextStakeKey elem stakeKeys)) ];
-      stakeKeys = (pp (__tail stakeKeys));
+      stakeKeys = __tail stakeKeys;
     } else {
       nodes = [ elem ];
       inherit stakeKeys;

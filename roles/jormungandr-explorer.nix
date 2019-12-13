@@ -1,6 +1,5 @@
 { lib, pkgs, config, resources, name, globals, ... }:
 let inherit (config.node) fqdn;
-  inherit (import ../nix {}) jormungandr-master;
   enableSSL = config.deployment.targetEnv != "libvirtd";
   protocol = if enableSSL then "https" else "http";
 

@@ -1,5 +1,4 @@
-{ pkgs ? import ../../nix { }, globals ? import ../../globals.nix, cluster, ...
-}:
+{ pkgs ? import ../../nix { }, globals ? import ../../globals.nix, cluster, ... }:
 let
   inherit (pkgs) lib;
   inherit (lib)

@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-# !nix-shell -i crystal -p crystal
+#!nix-shell -i crystal -p crystal
 
 require "json"
 require "option_parser"
