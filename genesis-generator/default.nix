@@ -69,7 +69,7 @@ let
   } // inputParams));
 
 in lib.fix (self: {
-  inherit (pkgs.jormungandrEnv.packages) jcli jormungandr;
+  inherit (pkgs.jormungandrLib.environments.qa.packages) jcli jormungandr;
   inherit inputConfig;
   ghc = pkgs.haskellPackages.ghcWithPackages (ps: with ps; [ aeson turtle split ]);
   genesis-generator = pkgs.runCommand "genesis-generator" {

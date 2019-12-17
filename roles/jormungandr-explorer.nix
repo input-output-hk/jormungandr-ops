@@ -6,6 +6,7 @@ let inherit (config.node) fqdn;
   registryFiles = __filterSource (path: type:
     (__match ''.*ed25519_(.*)\.(sig|json)$'' path) != null
   ) ../secrets/pools;
+
   registryZip = pkgs.runCommandNoCC "registry.zip" {
     buildInputs = with pkgs; [ zip ];
     inherit registryFiles;
@@ -20,6 +21,11 @@ let inherit (config.node) fqdn;
     mkdir -p $out/stakepool-registry
     cp ${registryFiles}/* $out/stakepool-registry/
     cp ${registryZip} $out/stakepool-registry/registry.zip
+  '';
+
+  genesisRoot = pkgs.runCommand "genesis" {} ''
+    mkdir -p $out/genesis
+    cp ${../static/genesis.yaml} $out/genesis/genesis.yaml
   '';
 in {
   imports = [ ./jormungandr-relay.nix ];
@@ -48,7 +54,8 @@ in {
     commonHttpConfig = ''
       map $http_origin $origin_allowed {
         default 0;
-        https://shelley-testnet-explorer-${globals.environment}.netlify.com 1;
+        https://shelleyexplorer.cardano.org 1;
+        https://shelley-testnet-explorer-staging.netlify.com 1;
       }
 
       map $origin_allowed $origin {
@@ -57,11 +64,17 @@ in {
       }
     '';
 
-    virtualHosts.${fqdn}.locations."/stakepool-registry" = {
-      extraConfig = ''
+    virtualHosts.${fqdn}.locations = {
+      "/stakepool-registry".extraConfig = ''
         allow all;
         autoindex on;
         root ${registryRoot};
+      '';
+
+      "/genesis".extraConfig = ''
+        allow all;
+        autoindex on;
+        root ${genesisRoot};
       '';
     };
   };

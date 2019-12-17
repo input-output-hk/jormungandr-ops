@@ -1,52 +1,42 @@
 # example usage: nix-build generate-incentivized.nix -A tester
 let
   ada = n: n * 1000000; # lovelace
+  mada = n: n * 1000000 * 1000000; # million ada in lovelace
   stakePoolCount = 0;
-  stakePoolBalances = [ (ada 1) ];
+  stakePoolBalances = [];
+  readFile = file: (__replaceStrings ["\n"] [""] (__readFile file));
   extraBlockchainConfig = {
     slots_per_epoch = 43200;
   };
+
   inputParams =
     let
-      readFile = file: (__replaceStrings ["\n"] [""] (__readFile file));
       #legacyAddrsToRemove = __attrNames mappedFunds;
-      extraLegacyFunds = (__fromJSON (__readFile ~/utxo-accept-3441286.json)).fund ++ [
-        { address = readFile ../secrets/wallets/disasm_wallet.address; value = ada 1000000000; }
-        { address = readFile ../secrets/wallets/clever_wallet.address; value = ada 1000000000; }
-        { address = readFile ../secrets/wallets/john_wallet.address; value = ada 1000000000; }
-        { address = readFile ../secrets/wallets/manveru_wallet.address; value = ada 1000000000; }
-      ];
+      extraLegacyFunds = (__fromJSON (__readFile ~/utxo-accept-3441286.json)).fund;
       # 1 lovelace for each initial stake pool so we can create blocks
       extraFunds = [
-        { address = readFile ../secrets/pools/IOHK1_owner_wallet.address; value = 1; }
-        { address = readFile ../secrets/pools/IOHK2_owner_wallet.address; value = 1; }
-        { address = readFile ../secrets/pools/IOHK3_owner_wallet.address; value = 1; }
-        { address = readFile ../secrets/pools/IOHK4_owner_wallet.address; value = 1; }
-        { address = readFile ../secrets/pools/IOHK5_owner_wallet.address; value = 1; }
-        { address = readFile ../secrets/pools/IOHK6_owner_wallet.address; value = 1; }
-        { address = readFile ../secrets/pools/IOHK7_owner_wallet.address; value = 1; }
-        { address = readFile ../secrets/pools/IOHK8_owner_wallet.address; value = 1; }
-
+        { address = readFile ../secrets/pools/iohk_owner_wallet_1.address; value = 1; }
+        { address = readFile ../secrets/pools/iohk_owner_wallet_2.address; value = 1; }
+        { address = readFile ../secrets/pools/iohk_owner_wallet_3.address; value = 1; }
+        { address = readFile ../secrets/pools/iohk_owner_wallet_4.address; value = 1; }
+        { address = readFile ../secrets/pools/iohk_owner_wallet_5.address; value = 1; }
+        { address = readFile ../secrets/pools/iohk_owner_wallet_6.address; value = 1; }
       ];
       extraDelegationCerts = map readFile [
-        ../secrets/pools/IOHK1-delegation.signcert
-        ../secrets/pools/IOHK2-delegation.signcert
-        ../secrets/pools/IOHK3-delegation.signcert
-        ../secrets/pools/IOHK4-delegation.signcert
-        ../secrets/pools/IOHK5-delegation.signcert
-        ../secrets/pools/IOHK6-delegation.signcert
-        ../secrets/pools/IOHK7-delegation.signcert
-        ../secrets/pools/IOHK8-delegation.signcert
+        ../secrets/pools/iohk_1_stake_delegation.signcert
+        ../secrets/pools/iohk_2_stake_delegation.signcert
+        ../secrets/pools/iohk_3_stake_delegation.signcert
+        ../secrets/pools/iohk_4_stake_delegation.signcert
+        ../secrets/pools/iohk_5_stake_delegation.signcert
+        ../secrets/pools/iohk_6_stake_delegation.signcert
       ];
       extraStakePools = map readFile [
-        ../secrets/pools/IOHK1.signcert
-        ../secrets/pools/IOHK2.signcert
-        ../secrets/pools/IOHK3.signcert
-        ../secrets/pools/IOHK4.signcert
-        ../secrets/pools/IOHK5.signcert
-        ../secrets/pools/IOHK6.signcert
-        ../secrets/pools/IOHK7.signcert
-        ../secrets/pools/IOHK8.signcert
+        ../secrets/pools/iohk_1.signcert
+        ../secrets/pools/iohk_2.signcert
+        ../secrets/pools/iohk_3.signcert
+        ../secrets/pools/iohk_4.signcert
+        ../secrets/pools/iohk_5.signcert
+        ../secrets/pools/iohk_6.signcert
       ];
     in {
       inherit extraLegacyFunds extraFunds extraStakePools extraDelegationCerts;

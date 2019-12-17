@@ -45,7 +45,7 @@ in {
     listenAddress = "/ip4/0.0.0.0/tcp/3000";
     rest.listenAddress = "${config.networking.privateIPv4}:3001";
     logger = {
-      level = "debug";
+      level = "info";
       output = "journald";
     };
     inherit trustedPeers;
