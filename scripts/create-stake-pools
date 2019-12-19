@@ -5,8 +5,9 @@ DIR=$(dirname -- "$0")
 
 function create_wallet_keys () {
   PREFIX=$1
-  NUM=$2
-  "${DIR}/create-wallet-keys.sh" -n "${NUM}" -p "${PREFIX}_owner_wallet_"
+  NUM_WALLETS=$2
+  STARTING_INDEX=$3
+  "${DIR}/create-wallet-keys.sh" -n "${NUM_WALLETS}" -i "${STARTING_INDEX}" -p "${PREFIX}_owner_wallet_"
 }
 
 function setup_stake () {
@@ -18,7 +19,7 @@ function setup_stake () {
   TICKER=$6
   URL=$7
   jcli key to-public < "${PREFIX}_owner_wallet_${INDEX}.sk" > "${PREFIX}_owner_wallet_${INDEX}.pub"
-  jcli address account "$(cat "${PREFIX}_owner_wallet_${INDEX}.pub")" --testing > "${PREFIX}_owner_wallet_${INDEX}.address"
+  jcli address account --prefix addr "$(cat "${PREFIX}_owner_wallet_${INDEX}.pub")" --testing > "${PREFIX}_owner_wallet_${INDEX}.address"
 
   jcli key generate --type=SumEd25519_12 > "${PREFIX}_${INDEX}_kes.sk"
   jcli key to-public < "${PREFIX}_${INDEX}_kes.sk" > "${PREFIX}_${INDEX}_kes.pub"
@@ -55,18 +56,50 @@ function setup_stake () {
 }
 
 function make_tarball () {
-  echo -e "\nMaking operator.tar.gz file"
-  tar -zcf operator.tar.gz ./*.sig ./*.json ./*.pub ./*.address ./*.yaml ./*.id ./*.signcert
+  echo -e "\nMaking operator-$(date -u '+%Y-%m-%d-%H-%M-%S').tar.gz file"
+  tar -zcf "operator-$(date -u '+%Y-%m-%d-%H-%M-%S').tar.gz" ./*.sig ./*.json ./*.pub ./*.address ./*.yaml ./*.id ./*.signcert
   echo "Done!"
 }
 
-create_wallet_keys iohk 6
-setup_stake iohk 1 "2/25" 258251123 "IOHK Stakepool" IOHK1 https://staking.cardano.org
-setup_stake iohk 2 "1/10" 258251123 "IOHK Stakepool" IOHK2 https://staking.cardano.org
-setup_stake iohk 3 "3/25" 258251123 "IOHK Stakepool" IOHK3 https://staking.cardano.org
-setup_stake iohk 4 "7/50" 258251123 "IOHK Stakepool" IOHK4 https://staking.cardano.org
-setup_stake iohk 5 "1/1" 258251123 "IOHK Private Stakepool" IOHK5 https://staking.cardano.org
-setup_stake iohk 6 "1/1" 258251123 "IOHK Private Stakepool" IOHK6 https://staking.cardano.org
+# Initial bootstrap phase stakepool deploy
+#create_wallet_keys iohk 6 1
+#setup_stake iohk 1 "2/25" 258251123 "IOHK Stakepool" IOHK1 https://staking.cardano.org
+#setup_stake iohk 2 "1/10" 258251123 "IOHK Stakepool" IOHK2 https://staking.cardano.org
+#setup_stake iohk 3 "3/25" 258251123 "IOHK Stakepool" IOHK3 https://staking.cardano.org
+#setup_stake iohk 4 "7/50" 258251123 "IOHK Stakepool" IOHK4 https://staking.cardano.org
+#setup_stake iohk 5 "1/1" 258251123 "IOHK Private Stakepool" IOHK5 https://staking.cardano.org
+#setup_stake iohk 6 "1/1" 258251123 "IOHK Private Stakepool" IOHK6 https://staking.cardano.org
+
+# 1st redistribution
+for i in {A..Y}; do
+  create_wallet_keys iohk 1 ${i}
+done
+setup_stake iohk A "4/50" 258251123 "IOHK Stakepool" IOHKA https://staking.cardano.org
+setup_stake iohk B "4/50" 258251123 "IOHK Stakepool" IOHKB https://staking.cardano.org
+setup_stake iohk C "4/50" 258251123 "IOHK Stakepool" IOHKC https://staking.cardano.org
+setup_stake iohk D "1/10" 258251123 "IOHK Stakepool" IOHKD https://staking.cardano.org
+setup_stake iohk E "1/10" 258251123 "IOHK Stakepool" IOHKE https://staking.cardano.org
+setup_stake iohk F "1/10" 258251123 "IOHK Stakepool" IOHKF https://staking.cardano.org
+setup_stake iohk G "6/50" 258251123 "IOHK Stakepool" IOHKG https://staking.cardano.org
+setup_stake iohk H "7/50" 258251123 "IOHK Stakepool" IOHKH https://staking.cardano.org
+setup_stake iohk I "7/50" 258251123 "IOHK Stakepool" IOHKI https://staking.cardano.org
+setup_stake iohk J "7/50" 258251123 "IOHK Stakepool" IOHKJ https://staking.cardano.org
+setup_stake iohk K "1/1" 258251123 "IOHK-Private" IOHKK https://staking.cardano.org
+setup_stake iohk L "1/1" 258251123 "IOHK-Private" IOHKL https://staking.cardano.org
+setup_stake iohk M "1/1" 258251123 "IOHK-Private" IOHKM https://staking.cardano.org
+setup_stake iohk N "1/1" 258251123 "IOHK-Private" IOHKN https://staking.cardano.org
+setup_stake iohk O "1/1" 258251123 "IOHK-Private" IOHKO https://staking.cardano.org
+setup_stake iohk P "1/1" 258251123 "IOHK-Private" IOHKP https://staking.cardano.org
+setup_stake iohk Q "1/1" 258251123 "IOHK-Private" IOHKQ https://staking.cardano.org
+setup_stake iohk R "1/1" 258251123 "IOHK-Private" IOHKR https://staking.cardano.org
+setup_stake iohk S "1/1" 258251123 "IOHK-Private" IOHKS https://staking.cardano.org
+setup_stake iohk T "1/1" 258251123 "IOHK-Private" IOHKT https://staking.cardano.org
+setup_stake iohk U "1/1" 258251123 "IOHK-Private" IOHKU https://staking.cardano.org
+setup_stake iohk V "1/1" 258251123 "IOHK-Private" IOHKV https://staking.cardano.org
+setup_stake iohk W "1/1" 258251123 "IOHK-Private" IOHKW https://staking.cardano.org
+setup_stake iohk X "1/1" 258251123 "IOHK-Private" IOHKX https://staking.cardano.org
+setup_stake iohk Y "1/1" 258251123 "IOHK-Private" IOHKY https://staking.cardano.org
+
 
 make_tarball
 exit 0

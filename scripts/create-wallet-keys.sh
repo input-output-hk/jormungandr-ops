@@ -4,12 +4,14 @@ set -euo pipefail
 [ $# -eq 0 ] && { echo "No arguments provided.  Use -h for help."; exit 1; }
 
 WALLET_PREFIX="${WALLET_PREFIX:-"wallet"}"
+STARTING_INDEX="${STARTING_INDEX:-"1"}"
 SECOND_FACTOR="${SECOND_FACTOR:-""}"
-while getopts 'n:p:s:h' c
+while getopts 'n:p:i:s:h' c
 do
   case "$c" in
     n) NUM_WALLETS="$OPTARG" ;;
     p) WALLET_PREFIX="$OPTARG" ;;
+    i) STARTING_INDEX="$OPTARG" ;;
     s) SECOND_FACTOR="$OPTARG" ;;
     *)
        echo "This command creates n sets of wallet mnemonic and corresponding secret key files in the cwd."
@@ -17,6 +19,7 @@ do
        echo ""
        echo "  -n number of sets of wallet mnemonic and key files to create"
        echo "  -p filename prefix (defaults to \"wallet\")"
+       echo "  -i starting index (defaults to 1).  Can also be any string if -n = 1"
        echo "  -s second factor keywords (defaults to \"\")"
        exit 0
        ;;
@@ -33,7 +36,18 @@ if ! [[ $NUM_WALLETS =~ ^[0-9]+$ ]]; then
   exit 1
 fi
 
-for i in $(seq 1 "$NUM_WALLETS"); do
+
+if [ "${NUM_WALLETS}" == 1 ]; then
+  RANGE=$STARTING_INDEX
+else
+  if ! [[ $STARTING_INDEX =~ ^[0-9]+$ ]]; then
+    echo "-i is not a positive integer"
+    exit 1
+  fi
+  RANGE=$(seq "$STARTING_INDEX" $(( STARTING_INDEX + NUM_WALLETS)))
+fi
+
+for i in $RANGE; do
   MNEMONIC="$(cardano-wallet-jormungandr mnemonic generate)"
   echo "$MNEMONIC" > "${WALLET_PREFIX}${i}.mnemonic"
   SK_OUT="${WALLET_PREFIX}${i}.sk"
