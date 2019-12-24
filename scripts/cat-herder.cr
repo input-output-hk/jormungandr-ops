@@ -96,9 +96,11 @@ class CatHerder
     property name : String
     getter time : Time
     getter restart_counter : UInt64
+    getter last_restart : Time | Nil
 
     def initialize(@name, @time);
       @restart_counter = 1
+      @last_restart = nil
     end
 
     def backup
@@ -111,8 +113,7 @@ class CatHerder
     end
 
     def cull!(backup)
-      puts "Culling #{@name}, may it fare better in its next life!"
-      puts "Restart counter: #{restart_counter}"
+      puts "Culling #{@name}, restarts: #{restart_counter}, last restart: #{last_restart.to_s}"
 
       sleep 5
 
@@ -129,7 +130,7 @@ class CatHerder
 
       # ssh "systemctl start jormungandr"
 
-      sleep(2.minutes)
+      sleep 2.minutes
 
       # mkdir -p /var/lib/jormungandr
 
@@ -140,6 +141,7 @@ class CatHerder
       #   systemctl start jormungandr
       # SHELL
     ensure
+      @last_restart = Time.now
       @restart_counter += 1
     end
 

@@ -7,8 +7,8 @@
       blocks = "normal";
     };
     maxConnections = 4 * 1024;
-    # maxUnreachableNodes = 256;
-    # policyQuarantineDuration = "10m";
+    maxUnreachableNodes = 256;
+    policyQuarantineDuration = "1m";
     # topologyForceResetInterval = "30s";
   };
 }
