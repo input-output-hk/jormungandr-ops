@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-# !nix-shell -i crystal -p crystal
+#!nix-shell -i crystal -p crystal
 
 require "json"
 require "file_utils"
@@ -13,43 +13,78 @@ class CatHerder
   def start
     loop do
       iterate
-      sleep(60 * 5)
+      sleep(10)
     end
   end
 
   def iterate
     time = Time.utc
-    nodes = node_names.map { |name|
+
+    puts "Checking node stats ..."
+
+    node_ch = Channel(Tuple(Node, JCLI::NodeStats::Result)).new
+    node_names.each { |name|
       node = Node.new(name, time)
-      {node, node.statistics}
+      spawn { node_ch.send({node, node.statistics}) }
     }
 
+    nodes = node_names.map { node_ch.receive }
     alive, dead = nodes.partition{|(node, stats)| stats }
+    dead_names = dead.map{|(node, stats)| node.name }
 
-    ranked = alive.sort_by{|(node, stats)| stats.not_nil!.lastBlockHeight.to_u64 }
+    puts "dead: #{dead_names.join(" ")}"
+
+    ranked = alive.select{|(node, stats)|
+      stats.try(&.state) == "Running"
+    }.sort_by{|(node, stats)|
+      stats.not_nil!.lastBlockHeight.to_u64
+    }
+
+    raise "Nobody is running or has blocks?" unless ranked.size > 0
     best = ranked.last[1].not_nil!.lastBlockHeight.to_u64
 
     candidates = ranked.select do |(node, stats)|
-      stats.not_nil!.lastBlockHeight.to_u64 < (best - 50)
+      stats.not_nil!.lastBlockHeight.to_u64 < (best - 10)
     end
 
     return if dead.empty? && candidates.empty?
 
+    trusted = ranked.select do |(node, stats)|
+      stats.not_nil!.lastBlockHeight.to_u64 > (best - 1)
+    end
+
+    trusted_names = trusted.map{|(node, stats)| node.name }
+    puts "New trusted peers: #{trusted_names.join("  ")}"
+    File.write("trusted.json", trusted_names.to_pretty_json)
+
     # backup_file = ranked.last[0].backup
     backup_file = nil
 
-    dead.each do |(node, stats)|
-      puts "Dead node #{node.name}"
-      node.cull!(backup_file)
-      return
+    dead_chan = Channel(Nil).new
+
+    dead.shuffle.first(5).each do |(node, stats)|
+      spawn {
+        node.cull!(backup_file)
+        dead_chan.send nil
+      }
     end
 
-    candidates.shuffle.first(3).each do |(node, stats)|
-      puts "Stuck node #{node.name}"
-      node.cull!(backup_file)
+    dead.each{ dead_chan.receive }
+
+    candidates = candidates.first(8)
+    puts "death row candidates: #{candidates.map{|(n, s)| n.name }.join(" ")}"
+
+    cand_chan = Channel(Nil).new
+
+    candidates.each do |(node, stats)|
+      spawn {
+        node.cull!(backup_file)
+        cand_chan.send nil
+      }
     end
+
+    candidates.each { cand_chan.receive }
   rescue ex
-    puts "hit error while iterating"
     puts ex
   end
 
@@ -60,8 +95,10 @@ class CatHerder
   class Node
     property name : String
     getter time : Time
+    getter restart_counter : UInt64
 
     def initialize(@name, @time);
+      @restart_counter = 1
     end
 
     def backup
@@ -74,20 +111,36 @@ class CatHerder
     end
 
     def cull!(backup)
-      puts "culling #{@name}, may it fare better in its next life!"
+      puts "Culling #{@name}, may it fare better in its next life!"
+      puts "Restart counter: #{restart_counter}"
 
-      ssh <<-SHELL
-        systemctl stop jormungandr;
-        rm -rf /var/lib/jormungandr;
-        mkdir -p /var/lib/jormungandr
-      SHELL
+      sleep 5
+
+      if restart_counter % 4 == 0
+        ssh <<-SHELL
+          systemctl stop jormungandr;
+          rm -rf /var/lib/jormungandr;
+        SHELL
+      else
+        ssh "systemctl stop jormungandr"
+      end
+
+      nixops "deploy", "--include", @name
+
+      # ssh "systemctl start jormungandr"
+
+      sleep(2.minutes)
+
+      # mkdir -p /var/lib/jormungandr
 
       # nixops "scp", "--to", @name, backup, "/var/lib/jormungandr/blocks.sqlite"
 
-      ssh <<-SHELL
-        chown -R jormungandr:jormungandr /var/lib/jormungandr;
-        systemctl start jormungandr
-      SHELL
+      # ssh <<-SHELL
+      #   chown -R jormungandr:jormungandr /var/lib/jormungandr;
+      #   systemctl start jormungandr
+      # SHELL
+    ensure
+      @restart_counter += 1
     end
 
     def backup_dir
@@ -102,7 +155,7 @@ class CatHerder
 
     def statistics
       silently do
-        result = ssh "jcli", "rest", "v0", "node", "stats", "get", "--output-format", "json"
+        result = ssh "timeout", "0.5", "jcli", "rest", "v0", "node", "stats", "get", "--output-format", "json"
         JCLI::NodeStats.parse(result.to_s)
       end
     rescue
@@ -179,6 +232,9 @@ module JCLI
       else
         nil
       end
+    rescue e
+      pp! e
+      nil
     end
 
     class Bootstrapping

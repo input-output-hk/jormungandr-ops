@@ -85,10 +85,18 @@ in {
 
           isRelay = mkOption {
             type = bool;
-            default = cfg.isFaucet || cfg.isExplorer || cfg.isTrustedPeer;
+            default = cfg.isFaucet
+                   || cfg.isExplorer
+                   || cfg.isTrustedPeer
+                   || cfg.isExplorerApi;
           };
 
           isTrustedPeer = mkOption {
+            type = bool;
+            default = false;
+          };
+
+          isTrustedPoolPeer = mkOption {
             type = bool;
             default = false;
           };
@@ -104,6 +112,11 @@ in {
           };
 
           isExplorer = mkOption {
+            type = bool;
+            default = false;
+          };
+
+          isExplorerApi = mkOption {
             type = bool;
             default = false;
           };

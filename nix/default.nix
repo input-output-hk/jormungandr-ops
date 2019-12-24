@@ -10,7 +10,9 @@ with {
 
     inherit ((import sources.jormungandr-nix { inherit (self.globals) environment; }).scripts)
       janalyze sendFunds delegateStake createStakePool checkTxStatus;
-    inherit (self.jormungandrEnv.packages) jormungandr jcli;
+    inherit (self.jormungandrLib.packages.master) jormungandr jcli;
+
+    explorerFrontend = (import sources.jormungandr-nix {}).explorerFrontend;
 
     nixops = (import (sources.nixops-core + "/release.nix") {
       nixpkgs = super.path;

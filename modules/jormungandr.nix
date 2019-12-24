@@ -9,7 +9,7 @@ let
 
   compact = l: filter (e: e != null) l;
   peerAddress = nodeName: node:
-    if node.config.node.isTrustedPeer && (nodeName != name) then
+    if node.config.node.isTrustedPoolPeer && (nodeName != name) then
       {
         address = node.config.services.jormungandr.publicAddress;
         id = publicIds.${nodeName};
@@ -35,6 +35,7 @@ in {
   services.jormungandr = {
     enable = true;
     withBackTraces = true;
+    block0 = ../static/block-0.bin;
     package = pkgs.jormungandrEnv.packages.jormungandr;
     jcliPackage = pkgs.jormungandrEnv.packages.jcli;
     rest.cors.allowedOrigins = [ ];
@@ -45,17 +46,25 @@ in {
     listenAddress = "/ip4/0.0.0.0/tcp/3000";
     rest.listenAddress = "${config.networking.privateIPv4}:3001";
     logger = {
-      level = "info";
+      level = "warn";
       output = "journald";
     };
-    inherit trustedPeers;
-    maxConnections = 11000;
+
+    trustedPeers = map (name:
+      {
+        address = "/ip4/${resources.elasticIPs."${name}-ip".address}/tcp/3000";
+        id = publicIds.${name};
+      }
+      ) (__fromJSON (__readFile ../trusted.json));
+
+    # inherit trustedPeers;
+
     publicId = publicIds."${name}" or (abort "run ./scripts/update-jormungandr-public-ids.rb");
   };
 
   systemd.services.jormungandr = {
     serviceConfig = {
-      MemoryMax = "7G";
+      MemoryMax = "7.5G";
       Restart = lib.mkForce "no";
     };
   };
@@ -75,10 +84,11 @@ in {
   services.jormungandr-monitor = {
     enable = true;
     jcliPackage = pkgs.jormungandrEnv.packages.jcli;
-    genesisYaml =
-      if (builtins.pathExists ../static/genesis.yaml)
-      then ../static/genesis.yaml
-      else null;
+    sleepTime = "10";
+    #genesisYaml =
+    #  if (builtins.pathExists ../static/genesis.yaml)
+    #  then ../static/genesis.yaml
+    #  else null;
   };
 
   services.journald = {

@@ -16,8 +16,13 @@ in rec {
     (__attrValues (builtins.removeAttrs resources [ "elasticIPs" ])));
 
   stakes = filterAttrs (name: node: node.node.isStake or false) machines;
-  relays = filterAttrs (name: node:
-    node.node.isTrustedPeer or node.node.isRelay or node.node.isExplorer or node.node.isFaucet or false)
+  relays = filterAttrs (name: node: let n = node.node; in
+    n.isTrustedPeer or
+    n.isTrustedPoolPeer or
+    n.isRelay or
+    n.isExplorer or
+    n.isExplorerApi or
+    n.isFaucet or false)
     machines;
 
   allNames = __attrNames all;

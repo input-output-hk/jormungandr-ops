@@ -4,12 +4,12 @@ in {
   imports = [ ../modules/jormungandr.nix ];
 
   services.jormungandr = {
-    block0 = ../static/block-0.bin;
     secrets-paths = [ "/run/keys/secret_pool.yaml" ];
     topicsOfInterest = {
       messages = "high";
       blocks = "high";
     };
+    maxConnections = 900;
   };
 
   users.users.jormungandr.extraGroups = [ "keys" ];

@@ -6,6 +6,7 @@ pkgs.mkShell {
     crystal
     expect
     jormungandrEnv.packages.jcli
+    jormungandrEnv.packages.jormungandr
     niv
     nixops
     openssl

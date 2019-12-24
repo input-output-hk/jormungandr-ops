@@ -1,6 +1,18 @@
 { pkgs, lib, nodes, ... }: {
   services.monitoring-services.applicationRules = [
     {
+      alert = "jormungandr_node_stats_outage";
+      expr = "((jormungandr_lastBlockHeight > bool 0) == bool 0) == 1";
+      for = "10m";
+      labels = {
+        severity = "page";
+      };
+      annotations = {
+        summary = "{{$labels.alias}}: Jormungandr node stats endpoint outage detected for more than 10 minutes";
+        description = "{{$labels.alias}}: Jormungandr node stats endpoint outage detected for more than 10 minutes";
+      };
+    }
+    {
       alert = "jormungandr_block_divergence";
       expr = "max(jormungandr_lastBlockHeight) - ignoring(alias,instance,job,role) group_right(instance) jormungandr_lastBlockHeight > 20";
       for = "30m";
