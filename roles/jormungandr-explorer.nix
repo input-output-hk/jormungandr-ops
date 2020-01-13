@@ -117,6 +117,13 @@ in {
       }
     ) explorerNodes;
 
+    upstreams.jormungandr-reward-api.servers = mapAttrs' (nodeName: node:
+      {
+        name = "${node.config.services.jormungandr-reward-api.host}:${toString node.config.services.jormungandr-reward-api.port}";
+        value = {};
+      }
+    ) explorerNodes;
+
     virtualHosts = {
       ${fqdn} = let
         headers = ''
@@ -155,6 +162,24 @@ in {
             proxy_set_header X-Real-IP $remote_addr;
           '';
 
+          "/api/rewards".extraConfig = ''
+            if ($request_method = OPTIONS) {
+              ${headers}
+              add_header 'Access-Control-Max-Age' 1728000;
+              add_header 'Content-Type' 'text/plain; charset=utf-8';
+              add_header 'Content-Length' 0;
+              return 204;
+              break;
+            }
+
+            if ($request_method = GET) {
+              ${headers}
+            }
+
+            proxy_pass http://jormungandr-reward-api/api/rewards;
+            proxy_set_header Host $host:$server_port;
+            proxy_set_header X-Real-IP $remote_addr;
+          '';
           "/api/v0/settings".extraConfig = ''
             if ($request_method = OPTIONS) {
               ${headers}

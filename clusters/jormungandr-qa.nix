@@ -15,6 +15,7 @@ let
       imports = [ tiny ../roles/jormungandr-explorer.nix ];
       deployment.ec2.region = "eu-central-1";
       node.isExplorer = true;
+      node.isExplorerApi = true;
     };
 
     #faucet = {

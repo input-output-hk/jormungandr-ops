@@ -48,15 +48,15 @@
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "jormungandr-nix": {
-        "branch": "jormungandr-nix-monitor-rate",
+        "branch": "master",
         "description": "jormungandr nix scripts",
         "homepage": null,
         "owner": "input-output-hk",
         "repo": "jormungandr-nix",
-        "rev": "aab3c443f476cf80e90100c96bf85568fbe3c33b",
-        "sha256": "1g9zpplfm7jga44ylic2pzrbm17awh3mv05mp1njg9hwfmbvzx3c",
+        "rev": "5b5f567e54d0348b7f8ba63c4504460d2385c90a",
+        "sha256": "0ar6lniilc1ls2mka2xq3ma5h4j4hc09c51vmw6m7187y9z9sbw6",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/jormungandr-nix/archive/aab3c443f476cf80e90100c96bf85568fbe3c33b.tar.gz",
+        "url": "https://github.com/input-output-hk/jormungandr-nix/archive/5b5f567e54d0348b7f8ba63c4504460d2385c90a.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "niv": {

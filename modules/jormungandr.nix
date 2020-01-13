@@ -9,7 +9,11 @@ let
 
   compact = l: filter (e: e != null) l;
   peerAddress = nodeName: node:
-    if node.config.node.isTrustedPoolPeer && (nodeName != name) then
+  if (
+    node.config.node.isTrustedPoolPeer
+    || node.config.node.isTrustedPeer
+    || node.config.node.isStake
+  ) && (nodeName != name) then
       {
         address = node.config.services.jormungandr.publicAddress;
         id = publicIds.${nodeName};
@@ -46,7 +50,7 @@ in {
     listenAddress = "/ip4/0.0.0.0/tcp/3000";
     rest.listenAddress = "${config.networking.privateIPv4}:3001";
     logger = {
-      level = "warn";
+      level = "error";
       output = "journald";
     };
 
@@ -64,7 +68,7 @@ in {
 
   systemd.services.jormungandr = {
     serviceConfig = {
-      MemoryMax = "7.5G";
+      MemoryMax = "3.5G";
       Restart = lib.mkForce "no";
     };
   };
@@ -84,7 +88,7 @@ in {
   services.jormungandr-monitor = {
     enable = true;
     jcliPackage = pkgs.jormungandrEnv.packages.jcli;
-    sleepTime = "10";
+    #sleepTime = "10";
     #genesisYaml =
     #  if (builtins.pathExists ../static/genesis.yaml)
     #  then ../static/genesis.yaml
