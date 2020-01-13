@@ -9,7 +9,8 @@ in {
       messages = "high";
       blocks = "high";
     };
-    maxConnections = 900;
+    maxConnections = 2 * 1024;
+    policyQuarantineDuration = "30m";
   };
 
   users.users.jormungandr.extraGroups = [ "keys" ];

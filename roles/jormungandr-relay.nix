@@ -6,9 +6,14 @@
       messages = "normal";
       blocks = "normal";
     };
-    maxConnections = 4 * 1024;
-    maxUnreachableNodes = 256;
-    policyQuarantineDuration = "1m";
+    maxConnections = 512;
+    maxUnreachableNodes = 128;
+
+    # For testing relay-a-backup-1 only
+    #maxConnections = 512;
+    #maxUnreachableNodes = 64;
+
+    policyQuarantineDuration = "10m";
     # topologyForceResetInterval = "30s";
   };
 }

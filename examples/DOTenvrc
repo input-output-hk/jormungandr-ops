@@ -1,14 +1,8 @@
-# This is an example file for `.envrc` that should live in the root dir
 use nix
 
-watch_file nix/*
-
-export NIXOPS_DEPLOYMENT=$NIXOPS_DEPLOYMENT
-
-export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY
-export PACKET_API_KEY=$PACKET_API_KEY
-export PACKET_PROJECT_ID=$PACKET_PROJECT_ID
+export NIXOPS_DEPLOYMENT=example
+export AWS_ACCESS_KEY_ID=example
+export PACKET_API_KEY=example
+export PACKET_PROJECT_ID=example
 
 export NIX_PATH="nixpkgs=$(nix eval '(import ./nix {}).path')"
-export EDITOR=~/$USER/result/bin/vim
-export GITHUB_TOKEN=$GITHUB_TOKEN

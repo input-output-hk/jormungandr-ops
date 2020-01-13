@@ -7,7 +7,7 @@ let
   monitoringFor = nodeName: node:
     let cfg = node.config.node;
     in {
-      hasJormungandrPrometheus = cfg.isRelay || cfg.isStake;
+      hasJormungandrPrometheus = cfg.isRelay || cfg.isStake || cfg.isTrustedPoolPeer || cfg.isTrustedPeer;
       hasNginx = cfg.isFaucet || cfg.isExplorer || cfg.isMonitoring;
       labels = { alias = nodeName; };
     };

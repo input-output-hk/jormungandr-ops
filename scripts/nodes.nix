@@ -31,6 +31,7 @@ in rec {
   stakesNames = __attrNames stakes;
   stakeStrings = toString stakesNames;
 
+  #relaysNames = __filter (r: r != "relay-a-backup-1") (__attrNames relays);
   relaysNames = __attrNames relays;
   relayStrings = toString relaysNames;
 

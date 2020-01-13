@@ -3,7 +3,7 @@
     {
       alert = "jormungandr_node_stats_outage";
       expr = "((jormungandr_lastBlockHeight > bool 0) == bool 0) == 1";
-      for = "10m";
+      for = "20m";
       labels = {
         severity = "page";
       };
