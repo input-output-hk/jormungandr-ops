@@ -17,10 +17,10 @@
         "homepage": null,
         "owner": "input-output-hk",
         "repo": "iohk-nix",
-        "rev": "42dca4f3f74626801dbe8557af6b9dfd50f352d2",
-        "sha256": "0lg8jdxp1ng509idhwwnn0r68h0l3rxcyc03nxsh9xkq3ga7n33d",
+        "rev": "13576b6e60ac2f004697f87a0fbb4d1d74d5002b",
+        "sha256": "1jz7sj2pwp7l4y2i2qp5j0jymjqj2a3v65khp7wsfwnvg1giswzm",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/iohk-nix/archive/42dca4f3f74626801dbe8557af6b9dfd50f352d2.tar.gz",
+        "url": "https://github.com/input-output-hk/iohk-nix/archive/13576b6e60ac2f004697f87a0fbb4d1d74d5002b.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "iohk-ops": {
@@ -48,15 +48,15 @@
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "jormungandr-nix": {
-        "branch": "master",
+        "branch": "monitor-extra-stats",
         "description": "jormungandr nix scripts",
         "homepage": null,
         "owner": "input-output-hk",
         "repo": "jormungandr-nix",
-        "rev": "5b5f567e54d0348b7f8ba63c4504460d2385c90a",
-        "sha256": "0ar6lniilc1ls2mka2xq3ma5h4j4hc09c51vmw6m7187y9z9sbw6",
+        "rev": "7a74e3b35434dbffc3e14eb38140c6389b7cfc90",
+        "sha256": "1jr71qs7gj08cys5hg7cf2zb80nk7b20791flw4xvfdh8wisa8wz",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/jormungandr-nix/archive/5b5f567e54d0348b7f8ba63c4504460d2385c90a.tar.gz",
+        "url": "https://github.com/input-output-hk/jormungandr-nix/archive/7a74e3b35434dbffc3e14eb38140c6389b7cfc90.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "niv": {
@@ -117,6 +117,18 @@
         "sha256": "0z2p4hjqh6ks7z70bahma2mw3pfhayyr63axk1zf85s2xk8iz2iz",
         "type": "tarball",
         "url": "https://github.com/manveru/nixpkgs/archive/956169b37546dafb90996330306415d7238249a4.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "ops-lib": {
+        "branch": "master",
+        "description": "NixOps deployment configuration library for IOHK devops ",
+        "homepage": null,
+        "owner": "input-output-hk",
+        "repo": "ops-lib",
+        "rev": "e436e272a30a41a85293c24475d3d81c3a260ccb",
+        "sha256": "1hlpbg55mzlq53bkjlrdk43a1ci3z9akmza7r6qc1mgg0bp6xsjh",
+        "type": "tarball",
+        "url": "https://github.com/input-output-hk/ops-lib/archive/e436e272a30a41a85293c24475d3d81c3a260ccb.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }

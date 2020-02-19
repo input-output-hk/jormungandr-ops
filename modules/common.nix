@@ -1,9 +1,7 @@
 { pkgs, lib, name, config, resources, ... }:
 let
   sshKeys =
-    import ((import ../nix/sources.nix).iohk-ops + "/lib/ssh-keys.nix") {
-      inherit lib;
-    };
+    import ((import ../nix/sources.nix).ops-lib + "/overlays/ssh-keys.nix") lib;
   inherit (sshKeys) allKeysFrom devOps;
   devOpsKeys = allKeysFrom devOps;
 in {

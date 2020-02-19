@@ -3,7 +3,7 @@
 require "json"
 
 def nixops(args : Array(String))
-  pretty = (["nixops"] + args.map{|arg|
+  pretty = (["nixops"] + args.map { |arg|
     case arg
     when Array(String)
       "'#{arg.join(" ")}'"
@@ -35,27 +35,27 @@ def resources
   nix_eval("initalResources")
 end
 
-def nixops_info 
+def nixops_info
   lines = `nixops info --no-eval`.each_line.map do |line|
-    line.split("|").map{|col| col.strip }
+    line.split("|").map { |col| col.strip }
   end
 
   i = lines.index([""]) || 0
 
-  lines.to_a[(i+4)..-2].map{|line|
+  lines.to_a[(i + 4)..-2].map { |line|
     {
-      name: line[1],
+      name:   line[1],
       status: line[2],
-      type: line[3],
-      id: line[4],
-      ip: line[5]
+      type:   line[3],
+      id:     line[4],
+      ip:     line[5],
     }
   }
 end
 
 machines = {
   relays: nix_eval("relays"),
-  stakes: nix_eval("stakes")
+  stakes: nix_eval("stakes"),
 }
 
 # puts "initial check..."
@@ -80,14 +80,14 @@ info.each do |i|
   when "Stopped"
   when "Unreachable"
   when "Up"
-    to_stop  << name if machines[:stakes].includes?(name)
+    to_stop << name if machines[:stakes].includes?(name)
   end
 end
 
 if to_stop.any?
   puts "stopping #{to_stop.join(' ')}"
   nixops(
-    [ "ssh-for-each", "-p", "--include" ] +
+    ["ssh-for-each", "-p", "--include"] +
     to_stop +
     ["--", "
      if [[ -d /var/lib/jormungandr ]]; then
@@ -119,7 +119,7 @@ machines.each do |key, all_names|
 
     next unless from_here
 
-    ips = names.map{|name| "#{name}-ip" }
+    ips = names.map { |name| "#{name}-ip" }
     args = ["--include"] + (names + ips).sort
     deploy args
   end

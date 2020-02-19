@@ -41,19 +41,19 @@ let
     imports = [ tiny ../roles/jormungandr-relay.nix ];
     deployment.ec2.region = region;
     node.isTrustedPoolPeer = true;
-    services.jormungandr.maxUnreachableNodes = lib.mkForce 0;
+    # services.jormungandr.maxUnreachableNodes = lib.mkForce 0;
   };
 
   mkTrustedPeers = region: amount: {
     inherit amount;
-    imports = [ tiny ../roles/jormungandr-relay.nix ];
+    imports = [ tiny ../roles/jormungandr-daedalus-relay.nix ];
     deployment.ec2.region = region;
     node.isTrustedPeer = true;
   };
 
   mkRelays = region: amount: {
     inherit amount;
-    imports = [ tiny ../roles/jormungandr-relay.nix ];
+    imports = [ tiny ../roles/jormungandr-backup-relay.nix ];
     deployment.ec2.region = region;
     node.isRelay = true;
   };
@@ -79,18 +79,28 @@ let
       node.isExplorerApi = true;
     };
 
-    relay-a = mkTrustedPeers "us-west-1" 3;
+    # US West (N. California)
+    relay-a = mkTrustedPeers "us-west-1" 6;
     relay-a-backup = mkRelays "us-west-1" 1;
-
-    relay-b = mkTrustedPeers "ap-northeast-1" 3;
-    relay-b-backup = mkRelays "ap-northeast-1" 1;
-
-    relay-c = mkTrustedPeers "eu-central-1" 3;
-    relay-c-backup = mkRelays "eu-central-1" 1;
-
     relay-pools-a = mkTrustedPoolPeers "us-west-1" 3;
+
+    # Asia Pacific (Tokyo)
+    relay-b = mkTrustedPeers "ap-northeast-1" 6;
+    relay-b-backup = mkRelays "ap-northeast-1" 1;
     relay-pools-b = mkTrustedPoolPeers "ap-northeast-1" 3;
+
+    # EU (Frankfurt)
+    relay-c = mkTrustedPeers "eu-central-1" 6;
+    relay-c-backup = mkRelays "eu-central-1" 1;
     relay-pools-c = mkTrustedPoolPeers "eu-central-1" 3;
+
+    # US East (N. Virginia)
+    relay-d = mkTrustedPeers "us-east-1" 6;
+    relay-d-backup = mkRelays "us-east-1" 1;
+
+    # Asia Pacific (Singapore)
+    relay-e = mkTrustedPeers "ap-southeast-1" 6;
+    relay-e-backup = mkRelays "ap-southeast-1" 1;
   };
 
   bootstrapStakeNodes = {
@@ -207,5 +217,6 @@ let
 
 in {
   network.description = "Jormungandr Incentivized";
-  network.enableRollback = true;
+  network.enableRollback = pkgs.lib.traceValFn (x: if x then "Rollback enabled" else "Rollback DISABLED")
+    (if (__getEnv "ROLLBACK_ENABLED") == "false" then false else true);
 } // nodes

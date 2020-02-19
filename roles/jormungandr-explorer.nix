@@ -110,25 +110,37 @@ in {
       }
     '';
 
-    upstreams.jormungandr-explorer-api.servers = mapAttrs' (nodeName: node:
-      {
-        name = "${node.config.services.jormungandr.rest.listenAddress}";
-        value = {};
-      }
-    ) explorerNodes;
+    upstreams.jormungandr-explorer-api = {
+      servers = mapAttrs' (nodeName: node:
+        {
+          name = "${node.config.services.jormungandr.rest.listenAddress}";
+          value = {};
+        }
+      ) explorerNodes;
+      extraConfig = ''
+        check interval=5000 rise=1 fall=3 timeout=4000 type=http;
+        check_http_expect_alive http_2xx http_3xx;
+        check_http_send "GET /api/v0/tip HTTP/1.0\r\n\r\n";
+      '';
+    };
 
-    upstreams.jormungandr-reward-api.servers = mapAttrs' (nodeName: node:
-      {
-        name = "${node.config.services.jormungandr-reward-api.host}:${toString node.config.services.jormungandr-reward-api.port}";
-        value = {};
-      }
-    ) explorerNodes;
+    upstreams.jormungandr-reward-api = {
+      servers = mapAttrs' (nodeName: node:
+        let cfg = node.config.services.jormungandr-reward-api;
+        in { name = "${cfg.host}:${toString cfg.port}"; value = {}; }
+      ) explorerNodes;
+      extraConfig = ''
+        check interval=5000 rise=1 fall=3 timeout=4000 type=http;
+        check_http_expect_alive http_2xx http_3xx;
+        check_http_send "GET /api/rewards/epoch/0 HTTP/1.0\r\n\r\n";
+      '';
+    };
 
     virtualHosts = {
       ${fqdn} = let
         headers = ''
           add_header 'Vary' 'Origin' always;
-          add_header 'access-control-allow-origin' $origin always;
+          add_header 'Access-Control-Allow-Origin' $origin always;
           add_header 'Access-Control-Allow-Methods' 'POST, OPTIONS, GET' always;
           add_header 'Access-Control-Allow-Headers' 'User-Agent,X-Requested-With,Content-Type' always;
         '';
@@ -180,6 +192,7 @@ in {
             proxy_set_header Host $host:$server_port;
             proxy_set_header X-Real-IP $remote_addr;
           '';
+
           "/api/v0/settings".extraConfig = ''
             if ($request_method = OPTIONS) {
               ${headers}
@@ -209,6 +222,11 @@ in {
             allow all;
             autoindex on;
             root ${genesisRoot};
+          '';
+
+          "/upstream-check".extraConfig = ''
+            allow all;
+            healthcheck_status;
           '';
         };
       };

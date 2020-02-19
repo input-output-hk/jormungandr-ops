@@ -4,9 +4,10 @@
 keydir = "secrets/wireguard"
 
 needed = `nix eval --raw '((import ./scripts/nodes.nix).allStrings)'`.split(" ")
-existing = Dir["#{keydir}/*.ip"].map{|f| File.basename(f, ".ip") }
+existing = Dir["#{keydir}/*.ip"].map { |f| File.basename(f, ".ip") }
+all = needed | existing
 
-ips = needed.each.with_index.map{|(_, i)| 
+ips = all.each.with_index.map { |(_, i)|
   i += 1
   "10.90.#{i / 256}.#{i % 256}"
 }.to_a
@@ -16,7 +17,7 @@ ips -= used_ips
 
 (needed - existing).each do |node|
   ip = ips.shift
-  pp!({ node => ip})
+  pp!({node => ip})
   `wg genkey | tee "#{keydir}/#{node}.private" | wg pubkey > "#{keydir}/#{node}.public"`
   File.write("#{keydir}/#{node}.ip", ip)
 end

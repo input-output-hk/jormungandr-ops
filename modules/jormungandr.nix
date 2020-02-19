@@ -5,13 +5,15 @@ let
   pkgs = import ../nix { };
   inherit (pkgs.packages) pp;
   inherit (builtins) filter attrValues mapAttrs;
-  environment = pkgs.jormungandrLib.environments.${environment};
+
+  #environment = pkgs.jormungandrLib.versions.v0_8_6;
 
   compact = l: filter (e: e != null) l;
   peerAddress = nodeName: node:
   if (
     node.config.node.isTrustedPoolPeer
     || node.config.node.isTrustedPeer
+    || node.config.node.isExplorer
     || node.config.node.isStake
   ) && (nodeName != name) then
       {
@@ -21,6 +23,13 @@ let
     else
       null;
   trustedPeers = compact (attrValues (mapAttrs peerAddress nodes));
+
+  trustedPeersFromJson = map (name:
+    {
+      address = "/ip4/${resources.elasticIPs."${name}-ip".address}/tcp/3000";
+      id = publicIds.${name};
+    }
+    ) (__fromJSON (__readFile ../trusted.json));
 
   publicIds = __fromJSON (__readFile (../secrets/jormungandr-public-ids.json));
 in {
@@ -39,9 +48,14 @@ in {
   services.jormungandr = {
     enable = true;
     withBackTraces = true;
+
+    # trustedPeers = [];
+    # inherit trustedPeers;
+    trustedPeers = trustedPeersFromJson;
+    package = pkgs.jormungandrLib.packages.v0_8_9.jormungandr-debug;
+    jcliPackage = pkgs.jormungandrLib.packages.v0_8_9.jcli-debug;
+
     block0 = ../static/block-0.bin;
-    package = pkgs.jormungandrEnv.packages.jormungandr;
-    jcliPackage = pkgs.jormungandrEnv.packages.jcli;
     rest.cors.allowedOrigins = [ ];
     publicAddress = if config.deployment.targetEnv == "ec2" then
       "/ip4/${resources.elasticIPs."${name}-ip".address}/tcp/3000"
@@ -50,19 +64,9 @@ in {
     listenAddress = "/ip4/0.0.0.0/tcp/3000";
     rest.listenAddress = "${config.networking.privateIPv4}:3001";
     logger = {
-      level = "error";
+      level = "info";
       output = "journald";
     };
-
-    trustedPeers = map (name:
-      {
-        address = "/ip4/${resources.elasticIPs."${name}-ip".address}/tcp/3000";
-        id = publicIds.${name};
-      }
-      ) (__fromJSON (__readFile ../trusted.json));
-
-    # inherit trustedPeers;
-
     publicId = publicIds."${name}" or (abort "run ./scripts/update-jormungandr-public-ids.rb");
   };
 
@@ -87,8 +91,8 @@ in {
 
   services.jormungandr-monitor = {
     enable = true;
-    jcliPackage = pkgs.jormungandrEnv.packages.jcli;
-    #sleepTime = "10";
+    jcliPackage = config.services.jormungandr.jcliPackage;
+    sleepTime = "30";
     #genesisYaml =
     #  if (builtins.pathExists ../static/genesis.yaml)
     #  then ../static/genesis.yaml
@@ -99,6 +103,8 @@ in {
     rateLimitInterval = "30s";
     rateLimitBurst = 10000;
   };
+
+  boot.kernel.sysctl."net.core.somaxconn" = 1024;
 
   services.nginx.enableReload = true;
 }

@@ -29,14 +29,14 @@ class CatHerder
     }
 
     nodes = node_names.map { node_ch.receive }
-    alive, dead = nodes.partition{|(node, stats)| stats }
-    dead_names = dead.map{|(node, stats)| node.name }
+    alive, dead = nodes.partition { |(node, stats)| stats }
+    dead_names = dead.map { |(node, stats)| node.name }
 
     puts "dead: #{dead_names.join(" ")}"
 
-    ranked = alive.select{|(node, stats)|
+    ranked = alive.select { |(node, stats)|
       stats.try(&.state) == "Running"
-    }.sort_by{|(node, stats)|
+    }.sort_by { |(node, stats)|
       stats.not_nil!.lastBlockHeight.to_u64
     }
 
@@ -49,13 +49,13 @@ class CatHerder
 
     return if dead.empty? && candidates.empty?
 
-    #trusted = ranked.select do |(node, stats)|
+    # trusted = ranked.select do |(node, stats)|
     #  stats.not_nil!.lastBlockHeight.to_u64 > (best - 1)
-    #end
+    # end
 
-    #trusted_names = trusted.map{|(node, stats)| node.name }
-    #puts "New trusted peers: #{trusted_names.join("  ")}"
-    #File.write("trusted.json", trusted_names.to_pretty_json)
+    # trusted_names = trusted.map{|(node, stats)| node.name }
+    # puts "New trusted peers: #{trusted_names.join("  ")}"
+    # File.write("trusted.json", trusted_names.to_pretty_json)
 
     # backup_file = ranked.last[0].backup
     backup_file = nil
@@ -69,10 +69,10 @@ class CatHerder
       }
     end
 
-    dead.each{ dead_chan.receive }
+    dead.each { dead_chan.receive }
 
     candidates = candidates.first(4)
-    puts "death row candidates: #{candidates.map{|(n, s)| n.name }.join(" ")}"
+    puts "death row candidates: #{candidates.map { |(n, s)| n.name }.join(" ")}"
 
     cand_chan = Channel(Nil).new
 
@@ -98,7 +98,7 @@ class CatHerder
     getter restart_counter : UInt64
     getter last_restart : Time | Nil
 
-    def initialize(@name, @time);
+    def initialize(@name, @time)
       @restart_counter = 1
       @last_restart = nil
     end
@@ -142,6 +142,7 @@ class CatHerder
       #   chown -R jormungandr:jormungandr /var/lib/jormungandr;
       #   systemctl start jormungandr
       # SHELL
+
     ensure
       @last_restart = Time.now
       @restart_counter += 1

@@ -12,7 +12,7 @@
   };
 
   services.jormungandr.rest.listenAddress = lib.mkForce "${config.node.wireguardIP}:3001";
-  networking.firewall.allowedTCPPorts = [ 3001 ];
+  networking.firewall.allowedTCPPorts = [ 3001 3003 ];
 
   networking.wg-quick.interfaces.wg0.peers = [
     {

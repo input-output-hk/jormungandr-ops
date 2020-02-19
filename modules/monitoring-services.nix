@@ -358,6 +358,14 @@ in {
         add_header Set-Cookie $auth_cookie;
       '';
     in {
+     deployment.keys."oauth_htpasswd".keyFile = ../. + "/secrets/htpasswd";
+     systemd.services.oauth2_proxy.preStart = ''
+       cp /run/keys/oauth_htpasswd /var/lib/oauth2_proxy/oauth_htpasswd
+       chown -R oauth2_proxy /var/lib/oauth2_proxy
+     '';
+     systemd.services.oauth2_proxy.serviceConfig.StateDirectory = "oauth2_proxy";
+     systemd.services.oauth2_proxy.serviceConfig.PermissionsStartOnly = true;
+
       services = {
         oauth2_proxy = {
           enable = true;
@@ -365,6 +373,10 @@ in {
           email.domains = [ "${cfg.oauth.emailDomain}" ];
           nginx.virtualHosts = [ "${cfg.webhost}" ];
           setXauthrequest = true;
+          extraConfig = {
+            htpasswd-file = "/var/lib/oauth2_proxy/oauth_htpasswd";
+            display-htpasswd-form = false;
+          };
         };
         nginx.virtualHosts."${cfg.webhost}".locations = {
           "/grafana/".extraConfig = oauthProxyConfig;

@@ -2,7 +2,7 @@
 #!nix-shell -p crystal -i crystal
 
 nodes = `nix eval --raw '((import ./scripts/nodes.nix).allStrings)'`.split
-nodes.reject!{|n| n =~ /^io(p|h)\d+$/ }
+nodes.reject! { |n| n =~ /^io(p|h)\d+$/ }
 
 outputs = Channel(String).new
 
@@ -19,4 +19,4 @@ nodes.each do |node|
   end
 end
 
-results = nodes.map{ |node| outputs.receive }
+results = nodes.map { |node| outputs.receive }

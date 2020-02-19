@@ -1,5 +1,7 @@
-{ nodes, name, lib, ... }:
-let poolNumber = __elemAt (lib.splitString "-" name) 1;
+{ lib, name, ... }:
+let
+  pkgs = import ../nix { };
+  poolNumber = __elemAt (lib.splitString "-" name) 1;
 in {
   imports = [ ../modules/jormungandr.nix ];
 
@@ -9,8 +11,9 @@ in {
       messages = "high";
       blocks = "high";
     };
-    maxConnections = 2 * 1024;
-    policyQuarantineDuration = "30m";
+    maxConnections = 256;
+    maxUnreachableNodes = 5;
+    # gossipInterval = "3s";
   };
 
   users.users.jormungandr.extraGroups = [ "keys" ];

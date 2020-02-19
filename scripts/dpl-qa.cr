@@ -8,16 +8,16 @@ require "file_utils"
 class Deployer
   class Config
     property? delete_state = false,
-              skip_backup = false,
-              skip_nixops = false,
-              skip_copy = false,
-              skip_healthcheck = false,
-              restore_backup = false
+      skip_backup = false,
+      skip_nixops = false,
+      skip_copy = false,
+      skip_healthcheck = false,
+      restore_backup = false
     property since_time : String = 6.hours.ago.to_s,
-             until_time : String = Time.utc.to_s
+      until_time : String = Time.utc.to_s
   end
 
-  @nodes  = [] of Node::Any
+  @nodes = [] of Node::Any
   @config = Config.new
 
   def parse_options
@@ -146,7 +146,7 @@ class Deployer
       end
 
       Fiber.yield
-      all_nodes.each{|node| results.receive }
+      all_nodes.each { |node| results.receive }
     end
   end
 
@@ -312,7 +312,6 @@ abstract class Node
     end
   end
 
-
   def pretty_log(*args)
     pretty = args.to_a.map { |arg|
       case arg
@@ -325,7 +324,6 @@ abstract class Node
 
     log pretty
   end
-
 
   def warn(msg)
     STDERR.puts msg
@@ -415,4 +413,3 @@ module JCLI
 end
 
 Deployer.new.deploy
-
