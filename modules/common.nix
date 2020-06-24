@@ -98,5 +98,6 @@ in {
 
   deployment.ec2.securityGroups = [
     resources.ec2SecurityGroups."allow-graylog-nodes-${config.node.region}"
+    resources.ec2SecurityGroups."allow-qa-node-${config.node.region}"
   ];
 }

@@ -3,7 +3,13 @@
 
   services.jormungandr.enable = true;
   systemd.services.jormungandr.after = [ "wg-quick-w0.service" ];
+  services.jormungandr.enableRewardsLog = true;
   services.jormungandr.enableExplorer = true;
+  services.jormungandr-reward-api = {
+    enable = true;
+    port = 3003;
+    host = "${config.node.wireguardIP}";
+  };
 
   services.jormungandr.rest.listenAddress = lib.mkForce "${config.node.wireguardIP}:3001";
   networking.firewall.allowedTCPPorts = [ 3001 ];

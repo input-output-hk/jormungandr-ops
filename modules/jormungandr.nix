@@ -9,14 +9,23 @@ let
 
   compact = l: filter (e: e != null) l;
   peerAddress = nodeName: node:
-    if node.config.node.isTrustedPoolPeer && (nodeName != name) then
+  if (
+    node.config.node.isTrustedPoolPeer
+    || node.config.node.isTrustedPeer
+  ) && (nodeName != name) then
       {
         address = node.config.services.jormungandr.publicAddress;
-        id = publicIds.${nodeName};
       }
     else
       null;
   trustedPeers = compact (attrValues (mapAttrs peerAddress nodes));
+
+  trustedPeersFromJson = map (name:
+    {
+      address = "/ip4/${resources.elasticIPs."${name}-ip".address}/tcp/3000";
+      id = publicIds.${name};
+    }
+    ) (__fromJSON (__readFile ../trusted.json));
 
   publicIds = __fromJSON (__readFile (../secrets/jormungandr-public-ids.json));
 in {
@@ -46,30 +55,24 @@ in {
     listenAddress = "/ip4/0.0.0.0/tcp/3000";
     rest.listenAddress = "${config.networking.privateIPv4}:3001";
     logger = {
-      level = "warn";
+      level = "debug";
       output = "journald";
     };
+    policy.quarantineDuration = "1m";
+    inherit trustedPeers;
+    layers.preferredList.peers = trustedPeers;
 
-    trustedPeers = map (name:
-      {
-        address = "/ip4/${resources.elasticIPs."${name}-ip".address}/tcp/3000";
-        id = publicIds.${name};
-      }
-      ) (__fromJSON (__readFile ../trusted.json));
-
-    # inherit trustedPeers;
-
-    publicId = publicIds."${name}" or (abort "run ./scripts/update-jormungandr-public-ids.rb");
+    # publicId = publicIds."${name}" or (abort "run ./scripts/update-jormungandr-public-ids.rb");
   };
 
   systemd.services.jormungandr = {
     serviceConfig = {
-      MemoryMax = "7.5G";
-      Restart = lib.mkForce "no";
+      MemoryMax = lib.mkDefault "3.7G";
+      # Restart = lib.mkForce "no";
     };
   };
 
-  networking.firewall.allowedTCPPorts = [ 3000 ];
+  networking.firewall.allowedTCPPorts = [ 3000 3001 ];
 
   environment.variables.JORMUNGANDR_RESTAPI_URL =
     "http://${config.services.jormungandr.rest.listenAddress}/api";
@@ -84,7 +87,7 @@ in {
   services.jormungandr-monitor = {
     enable = true;
     jcliPackage = pkgs.jormungandrEnv.packages.jcli;
-    sleepTime = "10";
+    #sleepTime = "10";
     #genesisYaml =
     #  if (builtins.pathExists ../static/genesis.yaml)
     #  then ../static/genesis.yaml

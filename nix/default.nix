@@ -10,7 +10,6 @@ with {
 
     inherit ((import sources.jormungandr-nix { inherit (self.globals) environment; }).scripts)
       janalyze sendFunds delegateStake createStakePool checkTxStatus;
-    inherit (self.jormungandrLib.packages.master) jormungandr jcli;
 
     explorerFrontend = (import sources.jormungandr-nix {}).explorerFrontend;
 

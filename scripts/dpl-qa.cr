@@ -26,13 +26,13 @@ class Deployer
     OptionParser.parse! do |parser|
       parser.banner = "Usage: ./scripts/dpl-qa.cr [arguments]"
 
-      parser.on "--delete-state", "Delete state on all nodes" { config.delete_state = true }
+      parser.on "--delete-state", "Delete state before deploy" { config.delete_state = true }
       parser.on "--skip-backup", "Don't backup state" { config.skip_backup = true }
       parser.on "--skip-nixops", "Don't run nixops deploy" { config.skip_nixops = true }
       parser.on "--skip-copy", "Don't run nixops copy" { config.skip_copy = true }
       parser.on "--skip-healthcheck", "Don't wait for healthcheck to pass" { config.skip_healthcheck = true }
       parser.on "--restore-backup", "restore backup before start" { config.restore_backup = true }
-      parser.on "--all", "Deploy all nodes" { @nodes = pp! all_nodes }
+      parser.on "--all", "Deploy all nodes" { @nodes = all_nodes }
       parser.on "--stakes", "Deploy stake nodes" { @nodes = stakes }
       parser.on "--relays", "Deploy relays nodes" { @nodes = relays }
       parser.on "--since=TIME", "Time from which logs are backed up" { |time| config.since_time = time }
@@ -100,8 +100,8 @@ class Deployer
       case node
       when Node::Stake
         next if current == node
-        uptime = statistics.try(&.uptime)
-        next unless uptime && uptime > (60 * 3) # skip utterly unstable nodes
+        uptime = statistics.try(&.uptime.seconds)
+        next unless uptime && uptime > 3.minutes # skip utterly unstable nodes
 
         height = statistics.try(&.lastBlockHeight).try(&.to_u64)
         if height && height > highest_stake_block

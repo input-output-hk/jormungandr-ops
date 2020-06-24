@@ -50,7 +50,12 @@ class CatHerder
     return if dead.empty? && candidates.empty?
 
     trusted = ranked.select do |(node, stats)|
-      stats.not_nil!.lastBlockHeight.to_u64 > (best - 1)
+      s = stats.not_nil!
+      s.lastBlockHeight.to_u64 > (best - 1) && s.uptime > 30.minutes.to_i
+    end
+
+    if trusted.any?{|(node, stats)| node.name =~ /relay/ }
+      trusted.reject!{|(node, stats)| node.name !~ /relay/ }
     end
 
     trusted_names = trusted.map{|(node, stats)| node.name }

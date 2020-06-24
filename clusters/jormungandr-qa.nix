@@ -1,4 +1,4 @@
-{ targetEnv, tiny, large }:
+{ targetEnv, tiny, medium, large }:
 let
   mkNodes = import ../nix/mk-nodes.nix { inherit targetEnv; };
   pkgs = import ../nix { };
@@ -12,9 +12,10 @@ let
     };
 
     explorer = {
-      imports = [ tiny ../roles/jormungandr-explorer.nix ];
+      imports = [ large ../roles/jormungandr-explorer.nix ];
       deployment.ec2.region = "eu-central-1";
       node.isExplorer = true;
+      node.isExplorerApi = true;
     };
 
     #faucet = {
@@ -133,7 +134,7 @@ let
     qa = {
       amount = 1;
       imports = [
-        tiny 
+        tiny
         ../roles/jormungandr-relay.nix
         ../roles/jormungandr-qa.nix
       ];
