@@ -94,7 +94,7 @@ in {
     to = 61000;
   }];
 
-  deployment.ec2.securityGroups = [
-    resources.ec2SecurityGroups."allow-graylog-nodes-${config.node.region}"
-  ];
+  # deployment.ec2.securityGroups = [
+  #   resources.ec2SecurityGroups."allow-graylog-${config.node.region}"
+  # ];
 }

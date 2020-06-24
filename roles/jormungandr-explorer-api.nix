@@ -1,7 +1,16 @@
-{ lib, pkgs, config, resources, name, globals, nodes, ... }: {
+{ lib, pkgs, config, resources, name, globals, nodes, ... }:
+let
+  pkgs = import ../nix { };
+  inherit (pkgs.lib) mkForce;
+  # jormungandr = pkgs.jormungandrLib.packages.v0_9_0;
+in
+{
   imports = [ ./jormungandr-relay.nix ];
 
-  services.jormungandr.enable = true;
+  services.jormungandr = {
+    enable = true;
+    enableRewardsReportAll = true;
+  };
   systemd.services.jormungandr.after = [ "wg-quick-w0.service" ];
   services.jormungandr.enableRewardsLog = true;
   services.jormungandr.enableExplorer = true;

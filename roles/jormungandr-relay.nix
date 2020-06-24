@@ -10,8 +10,9 @@ in {
       blocks = "normal";
     };
 
-    maxConnections = 2 * 1024;
-    maxUnreachableNodes = 1024;
+    # maxConnections = 2 * 1024;
+    # maxUnreachableNodes = 1024;
+    # maxBootstrapAttempts = 0;
 
     # policyQuarantineDuration = "10m";
     # topologyForceResetInterval = "30s";

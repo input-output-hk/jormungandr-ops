@@ -2,6 +2,7 @@
 let
   pkgs = import ../nix { };
   inherit (pkgs.lib) mkForce;
+  #jormungandr = pkgs.jormungandrLib.packages.v0_9_0;
 in {
   imports = [ ../modules/jormungandr.nix ];
 
@@ -11,17 +12,19 @@ in {
       blocks = "normal";
     };
 
-    maxConnections = 4 * 1024;
-    maxUnreachableNodes = 256;
-    publicAddress = mkForce null;
+    maxConnections = 10000;
+    maxUnreachableNodes = 1000;
+    # publicAddress = mkForce null;
 
-    # policyQuarantineDuration = "10m";
+    policy.quarantineDuration = "10m";
     # topologyForceResetInterval = "30s";
-  } // (if name == "relay-a-backup-1" then {
-    package = mkForce pkgs.jormungandrLib.packages.v0_8_9.jormungandr-debug;
-    jcliPackage = mkForce pkgs.jormungandrLib.packages.v0_8_9.jcli-debug;
-  } else {
-    package = mkForce pkgs.jormungandrLib.packages.v0_8_10.jormungandr-debug;
-    jcliPackage = mkForce pkgs.jormungandrLib.packages.v0_8_10.jcli-debug;
-  });
+    skipBootstrap = true;
+  };
+  # // (if name == "relay-a-backup-1" then {
+  #   package = mkForce jormungandr.jormungandr-debug;
+  #   jcliPackage = mkForce jormungandr.jcli-debug;
+  # } else {
+  #   package = mkForce jormungandr.jormungandr-debug;
+  #   jcliPackage = mkForce jormungandr.jcli-debug;
+  # });
 }

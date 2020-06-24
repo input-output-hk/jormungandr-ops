@@ -5,6 +5,9 @@ require "json"
 require "file_utils"
 
 class CatHerder
+  BACKUPS                   = false
+  OLDEST_STAKE_DEADLINE     = 48.hours
+  OLDEST_RELAY_DEADLINE     = 12.hours
   MAX_HEIGHT_DIFFERENCE     = 50
   TIME_BETWEEN_ITERATIONS   = 1.minute
   TIME_TO_WAIT_AFTER_DEPLOY = 10.seconds
@@ -37,13 +40,12 @@ class CatHerder
 
     to_cull = dead + behind.first(8)
 
-    oldest = running.sort_by(&.stats.uptime).last
-    oldest_uptime = Time::Span.new(0, 0, oldest.stats.uptime)
-    if oldest_uptime > 3.hours
-      puts "#{oldest.name} has reached the ripe age of #{oldest_uptime}, sending it into retirement"
+    if oldest = running.sort_by{|r| 0 - r.stats.uptime }.find(&.too_old?)
+      puts "#{oldest.name} has reached the ripe age of #{oldest.uptime}, sending it into retirement"
       to_cull << oldest
     end
-    # return if to_cull.empty?
+
+    return if to_cull.empty?
 
     dead.each do |node|
       puts "Culling #{node.name} because it's dead"
@@ -54,9 +56,7 @@ class CatHerder
       puts "Culling #{node.name} because it's #{delta} blocks behind"
     end
 
-    puts "Fetching backup from block height leader..."
-
-    backup_best by_height.last.not_nil!.name
+    backup_best by_height.last.not_nil!.name if BACKUPS
 
     trusted = by_height.select do |node|
       node.stats.lastBlockHeight.to_u64 > (best - 1)
@@ -81,6 +81,22 @@ class CatHerder
       "nixops",
       ["scp", "--from", best_name, "blocks.sqlite.bak", "blocks.sqlite.bak"],
       error: STDERR)
+  end
+
+  def use_backups(names)
+    node_ch = Channel(Bool).new
+
+    names.each do |name|
+      spawn do
+        Process.run(
+          "nixops",
+          ["scp", "--to", name, "blocks.sqlite.bak", "blocks.sqlite.bak"],
+          error: STDERR)
+        node_ch.send true
+      end
+    end
+
+    names.each { |n| node_ch.receive }
   end
 
   def nodes
@@ -111,7 +127,7 @@ class CatHerder
 
   def cull!(nodes)
     names = nodes.map(&.name)
-    # names.delete "relay-pools-a-1"
+    # names.delete "relay-a-backup-1"
     # names = ["relay-pools-a-1"]
 
     return if names.empty?
@@ -119,34 +135,35 @@ class CatHerder
     puts "Culling #{names.join(" ")} in 10 seconds"
     sleep 10
 
-    node_ch = Channel(Bool).new
+    if BACKUPS
+      use_backups(names)
 
-    names.each do |name|
-      spawn do
-        Process.run(
-          "nixops",
-          ["scp", "--to", name, "blocks.sqlite.bak", "blocks.sqlite.bak"],
-          error: STDERR)
-        node_ch.send true
-      end
+      Process.run(
+        "nixops",
+        ["ssh-for-each", "-p", "--include"] + names + ["--", <<-SSH], error: STDERR)
+          systemctl stop jormungandr && \
+          rm -rf /var/lib/jormungandr/blocks.sqlite* || true && \
+          cp blocks.sqlite.bak /var/lib/jormungandr/blocks.sqlite && \
+          chown jormungandr:jormungandr -R /var/lib/jormungandr
+        SSH
+    else
+      Process.run(
+        "nixops",
+        ["ssh-for-each", "-p", "--include"] + names + ["--", <<-SSH], error: STDERR)
+          systemctl stop jormungandr
+        SSH
     end
 
-    names.each { |n| node_ch.receive }
-
     Process.run(
       "nixops",
-      ["ssh-for-each", "-p", "--include"] + names + ["--", <<-SSH], error: STDERR)
-      systemctl stop jormungandr && \
-      rm -rf /var/lib/jormungandr/blocks.sqlite* || true && \
-      cp blocks.sqlite.bak /var/lib/jormungandr/blocks.sqlite && \
-      chown jormungandr:jormungandr -R /var/lib/jormungandr
-    SSH
-
-    Process.run(
-      "nixops",
-      ["deploy", "--include"] + names,
+      ["deploy",
+       "--allow-reboot",
+       "--confirm",
+       "--option", "substituters", "https://cache.nixos.org https://hydra.iohk.io",
+       "--include"] + names,
       error: STDERR,
       env: {"ROLLBACK_ENABLED" => "false"})
+
     sleep TIME_TO_WAIT_AFTER_DEPLOY
   end
 
@@ -160,6 +177,15 @@ class CatHerder
       getter name : String
 
       def initialize(@name, @stats)
+      end
+
+      def too_old?
+        (RELAYS.includes?(name) && uptime > OLDEST_RELAY_DEADLINE) ||
+          uptime > OLDEST_STAKE_DEADLINE
+      end
+
+      def uptime
+        Time::Span.new(0, 0, stats.uptime)
       end
     end
 
@@ -182,7 +208,7 @@ class CatHerder
     def self.init(name) : Running | Bootstrapping | Dead
       output = IO::Memory.new
       status = Process.run("nixops", [
-        "ssh", name, "timeout", "1", "jcli", "rest", "v0", "node", "stats", "get", "--output-format", "json",
+        "ssh", name, "timeout", "60", "jcli", "rest", "v0", "node", "stats", "get", "--output-format", "json",
       ], output: output, error: STDERR)
 
       case status.exit_status
@@ -208,7 +234,7 @@ class CatHerder
         last_log = last_log_time(name)
         attempts = bootstrap_attempts(name)
 
-        if last_log < 10.minutes.ago
+        if last_log < 20.minutes.ago
           puts "Dead: #{name} had last log at #{last_log}"
           Dead.new(name, nil)
         elsif attempts > 50

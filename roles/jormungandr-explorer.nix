@@ -101,7 +101,10 @@ in {
       map $http_origin $origin_allowed {
         default 0;
         https://shelleyexplorer.cardano.org 1;
-        https://shelley-testnet-explorer-staging.netlify.com 1;
+        https://shelley-testnet-explorer-staging.netlify.app 1;
+        https://itnexplorer-cardano-staging.netlify.app 1;
+        https://itnexplorer.cardano.org 1;
+        https://explorer.itn.cardano.org 1;
       }
 
       map $origin_allowed $origin {
@@ -147,6 +150,7 @@ in {
       in {
         forceSSL = enableSSL;
         enableACME = enableSSL;
+        serverAliases = ["itnexplorer.cardano.org" "explorer.itn.cardano.org"];
 
         locations = {
           "/" = {

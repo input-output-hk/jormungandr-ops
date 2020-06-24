@@ -18,7 +18,7 @@ let
   ) && (nodeName != name) then
       {
         address = node.config.services.jormungandr.publicAddress;
-        id = publicIds.${nodeName};
+        #id = publicIds.${nodeName};
       }
     else
       null;
@@ -27,7 +27,7 @@ let
   trustedPeersFromJson = map (name:
     {
       address = "/ip4/${resources.elasticIPs."${name}-ip".address}/tcp/3000";
-      id = publicIds.${name};
+      #id = publicIds.${name};
     }
     ) (__fromJSON (__readFile ../trusted.json));
 
@@ -50,10 +50,17 @@ in {
     withBackTraces = true;
 
     # trustedPeers = [];
-    # inherit trustedPeers;
-    trustedPeers = trustedPeersFromJson;
-    package = pkgs.jormungandrLib.packages.v0_8_9.jormungandr-debug;
-    jcliPackage = pkgs.jormungandrLib.packages.v0_8_9.jcli-debug;
+    # trustedPeers = trustedPeersFromJson;
+
+    inherit trustedPeers;
+    layers.preferredList.peers = trustedPeers;
+    policy.quarantineWhitelist = map (p: p.address) trustedPeers;
+
+    # 0.9.0
+    allowPrivateAddresses = false;
+
+    package = pkgs.jormungandrLib.packages.v0_9_0.jormungandr-debug;
+    jcliPackage = pkgs.jormungandrLib.packages.v0_9_0.jcli-debug;
 
     block0 = ../static/block-0.bin;
     rest.cors.allowedOrigins = [ ];
@@ -64,6 +71,7 @@ in {
     listenAddress = "/ip4/0.0.0.0/tcp/3000";
     rest.listenAddress = "${config.networking.privateIPv4}:3001";
     logger = {
+      #level = "debug";
       level = "info";
       output = "journald";
     };
@@ -72,8 +80,8 @@ in {
 
   systemd.services.jormungandr = {
     serviceConfig = {
-      MemoryMax = "3.5G";
-      Restart = lib.mkForce "no";
+      MemoryMax = "7.5G";
+      # Restart = lib.mkForce "no";
     };
   };
 

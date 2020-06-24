@@ -14,7 +14,7 @@
     }
     {
       alert = "jormungandr_block_divergence";
-      expr = "max(jormungandr_lastBlockHeight) - ignoring(alias,instance,job,role) group_right(instance) jormungandr_lastBlockHeight > 20";
+      expr = "max(jormungandr_lastBlockHeight) - ignoring(alias,instance,job,role) group_right(instance) jormungandr_lastBlockHeight > 60";
       for = "30m";
       labels = {
         severity = "page";
